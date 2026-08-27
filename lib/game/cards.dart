@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'arts.dart';
 import 'weapons.dart';
 
 /// One sword card's battle state.
@@ -9,6 +10,7 @@ class CardState {
   final Sword sword;
   double durability;
   double cooldown = 0;
+  double cdV = 0, cdW = 0;
 
   bool get ready => cooldown <= 0 && durability > 0;
   double get durabilityFrac => (durability / sword.durability).clamp(0.0, 1.0);
@@ -25,6 +27,12 @@ class CardDeck {
 
   final List<CardState> cards;
   int? equipped;
+  double fistsCdV = 0, fistsCdW = 0;
+
+  /// After any art, every art locks briefly so card-switching can't chain
+  /// a whole deck of arts into one burst.
+  double artLock = 0;
+  static const artLockSeconds = 4.0;
 
   /// Set by the owner; fired when the equipped blade shatters.
   void Function(Sword broken, Sword? next)? onShatter;
@@ -46,6 +54,36 @@ class CardDeck {
         c.cooldown = math.max(0, c.cooldown - dt);
         if (c.cooldown == 0) c.durability = c.sword.durability;
       }
+      c.cdV = math.max(0, c.cdV - dt);
+      c.cdW = math.max(0, c.cdW - dt);
+    }
+    fistsCdV = math.max(0, fistsCdV - dt);
+    fistsCdW = math.max(0, fistsCdW - dt);
+    artLock = math.max(0, artLock - dt);
+  }
+
+  /// Remaining cooldown of the equipped blade's art for [g].
+  double artCooldown(ArtGesture g) {
+    final c = current;
+    final own = c == null
+        ? (g == ArtGesture.v ? fistsCdV : fistsCdW)
+        : (g == ArtGesture.v ? c.cdV : c.cdW);
+    return math.max(own, artLock);
+  }
+
+  void startArt(ArtGesture g, double seconds) {
+    artLock = artLockSeconds;
+    final c = current;
+    if (c == null) {
+      if (g == ArtGesture.v) {
+        fistsCdV = seconds;
+      } else {
+        fistsCdW = seconds;
+      }
+    } else if (g == ArtGesture.v) {
+      c.cdV = seconds;
+    } else {
+      c.cdW = seconds;
     }
   }
 
@@ -90,7 +128,12 @@ class CardDeck {
     for (final c in cards) {
       c.durability = c.sword.durability;
       c.cooldown = 0;
+      c.cdV = 0;
+      c.cdW = 0;
     }
+    fistsCdV = 0;
+    fistsCdW = 0;
+    artLock = 0;
     equipped = cards.isEmpty ? null : 0;
   }
 }

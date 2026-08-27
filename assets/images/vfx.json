@@ -1,0 +1,162 @@
+{
+ "fire_breath_0": {
+  "file": "vfx/fire_breath.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 3,
+  "fps": 16,
+  "row": 0
+ },
+ "fire_breath_1": {
+  "file": "vfx/fire_breath.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 4,
+  "fps": 16,
+  "row": 1
+ },
+ "fire_breath_2": {
+  "file": "vfx/fire_breath.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 7,
+  "fps": 16,
+  "row": 2
+ },
+ "fire_hit": {
+  "file": "vfx/fire_hit.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 5,
+  "fps": 16,
+  "row": 0
+ },
+ "firebolt": {
+  "file": "vfx/firebolt.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 11,
+  "fps": 18,
+  "row": 0
+ },
+ "thunder_hit": {
+  "file": "vfx/thunder_hit.png",
+  "fw": 32,
+  "fh": 32,
+  "n": 6,
+  "fps": 18,
+  "row": 0
+ },
+ "thunder_proj": {
+  "file": "vfx/thunder_proj.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 16,
+  "fps": 20,
+  "row": 0
+ },
+ "holy_impact": {
+  "file": "vfx/holy_impact.png",
+  "fw": 32,
+  "fh": 32,
+  "n": 7,
+  "fps": 16,
+  "row": 0
+ },
+ "holy_repeat": {
+  "file": "vfx/holy_repeat.png",
+  "fw": 32,
+  "fh": 32,
+  "n": 8,
+  "fps": 14,
+  "row": 0
+ },
+ "holy2": {
+  "file": "vfx/holy2.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 16,
+  "fps": 18,
+  "row": 0
+ },
+ "earth_impact": {
+  "file": "vfx/earth_impact.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 7,
+  "fps": 16,
+  "row": 0
+ },
+ "dark_0": {
+  "file": "vfx/dark.png",
+  "fw": 40,
+  "fh": 32,
+  "n": 10,
+  "fps": 16,
+  "row": 0
+ },
+ "dark_1": {
+  "file": "vfx/dark.png",
+  "fw": 40,
+  "fh": 32,
+  "n": 5,
+  "fps": 16,
+  "row": 1
+ },
+ "hit1": {
+  "file": "vfx/hit1.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 7,
+  "fps": 22,
+  "row": 0
+ },
+ "hit2": {
+  "file": "vfx/hit2.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 7,
+  "fps": 22,
+  "row": 0
+ },
+ "hit3": {
+  "file": "vfx/hit3.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 7,
+  "fps": 22,
+  "row": 0
+ },
+ "smear_h": {
+  "file": "vfx/smear_h.png",
+  "fw": 48,
+  "fh": 48,
+  "n": 5,
+  "fps": 22,
+  "row": 0
+ },
+ "ice_hit": {
+  "file": "vfx/ice_hit.png",
+  "fw": 32,
+  "fh": 32,
+  "n": 12,
+  "fps": 18,
+  "row": 0
+ },
+ "ice2_start": {
+  "file": "vfx/ice2_start.png",
+  "fw": 32,
+  "fh": 32,
+  "n": 9,
+  "fps": 16,
+  "row": 0
+ },
+ "ice2_end": {
+  "file": "vfx/ice2_end.png",
+  "fw": 32,
+  "fh": 32,
+  "n": 18,
+  "fps": 16,
+  "row": 0
+ }
+}

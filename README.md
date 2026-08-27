@@ -41,12 +41,48 @@ Frost Edge (6), Shadow Blade (8), Thunder Fang (10), Venom Kris (12),
 Excalibur (14), Dragon Cleaver (16). The **Armory** on the map lists every
 blade's stats.
 
+## Sword arts (draw glyphs)
+
+Every stroke on the right half of the screen leaves a glowing sword trail.
+Draw a **V** or a **W** and the equipped blade answers with its own **Art**;
+the glyph flashes with the art's name, and cooldown badges (V / W) sit under
+the enemy's health bar. Each of the ten swords has two arts, listed in the
+Armory under its stats:
+
+| Blade | V (offense) | W (defense / utility) |
+| --- | --- | --- |
+| Fists | Flurry — three fast punches | Breathe — heal 8 |
+| Wakizashi | Flash Step — dash through with three cuts | Second Wind — heal 15% |
+| Katana | Crescent Cut — slash wave that bleeds | Iaijutsu Stance — untouchable 1.5s, next hit crits |
+| Nodachi | Earthsplitter — shockwave, launch + stun | Iron Will — 70% less damage for 5s |
+| Flame Blade | Fire Wave — burning wave | Blazing Aura — heal 10, attackers burn |
+| Frost Edge | Glacial Lance — freezing lance | Ice Armor — shield absorbs 30 |
+| Shadow Blade | Shadow Strike — teleport behind, headshot | Veil — untouchable and ignored 3s |
+| Thunder Fang | Thunderclap — lightning, stun | Storm Charge — 40% faster swings 6s |
+| Venom Kris | Toxic Fang — heavy poison | Antidote — cleanse, heal 20 |
+| Excalibur | Holy Lance — launching lance of light | Sanctuary — invincible 3s, heal 25 |
+| Dragon Cleaver | Dragon's Breath — fire cone | Draconic Rage — +60% damage, lifesteal 6s |
+
+Art strikes are unblockable and never wear the blade. Each blade keeps its own
+V and W timers, and after any art every art locks for 4s, so switching cards
+can't chain a whole deck into one burst. You can't cast while staggered.
+Six villains inflict status effects of their own (Seraph and King Varin bleed,
+Lyra and Malakar poison, Ignis burns, Zephyr chills), which Antidote and
+Sanctuary answer. Hits land with pimen's pixel VFX (hit sparks, smears, fire,
+thunder, ice, holy, earth) on top of the game's own trails, shockwaves,
+lightning and dash after-images.
+
+| Trail | Thunderclap | Earthsplitter |
+| --- | --- | --- |
+| ![trail](screenshots/art_trail.png) | ![thunder](screenshots/art_thunderclap.png) | ![earth](screenshots/art_earthsplitter.png) |
+
 ## Controls
 
 | Input | Action |
 | --- | --- |
 | Left joystick | Move on the isometric floor (x + depth) |
 | Tap (right side) | Quick strike |
+| Draw V / W (right side) | Sword art (see below) |
 | Swipe ◄ / ► | Slash |
 | Swipe ▲ | Rising kick (launches, can headshot) |
 | Swipe ▼ | Heavy smash (breaks guard, can headshot, triggers heavy specials) |

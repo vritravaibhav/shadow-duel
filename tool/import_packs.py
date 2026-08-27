@@ -101,6 +101,28 @@ def far_point(frame, facing_right):
     return None
 
 
+def drop_flash_frames(sheet, fw):
+    """Some packs paint a solid-white silhouette frame into the hit strip as a
+    built-in flash; the game does its own tinting, so those frames go."""
+    keep = []
+    for fr in frames(sheet, fw):
+        px = fr.load()
+        opaque = white = 0
+        for y in range(fr.size[1]):
+            for x in range(fr.size[0]):
+                r, g, b, a = px[x, y]
+                if a > ALPHA_MIN:
+                    opaque += 1
+                    if r > 235 and g > 235 and b > 235:
+                        white += 1
+        if opaque == 0 or white / opaque < 0.9:
+            keep.append(fr)
+    out = Image.new('RGBA', (fw * len(keep), sheet.size[1]), (0, 0, 0, 0))
+    for i, fr in enumerate(keep):
+        out.paste(fr, (i * fw, 0))
+    return out
+
+
 def portrait(frame0, flip, glow, out_path, head=(0.22, 0.6, 0.0)):
     l, t, r, b = bbox(frame0)
     h = b - t
@@ -152,6 +174,10 @@ def main():
             if path is None:
                 raise SystemExit(f'{key}: no sheet for {anim} (tried {names})')
             sheet = Image.open(path).convert('RGBA')
+            if anim == 'hit':
+                sheet = drop_flash_frames(sheet, fw)
+                name = f'{name}Clean'
+                sheet.save(os.path.join(folder, name + '.png'))
             n = sheet.size[0] // fw
             item = {
                 'file': f'packs/{key}/{name}.png',

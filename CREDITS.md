@@ -39,6 +39,17 @@ Card frames, buttons, map nodes and icons are from **Kenney's UI Pack** and
 **Game Icons** (https://kenney.nl), CC0. License text in
 `assets/images/ui/License_kenney.txt`.
 
+
+## Battle VFX — pimen (free, credit appreciated)
+
+Hit sparks, smears, fire breath, thunder, ice, holy and earth impacts, and the
+dark puff are from **pimen**'s free VFX packs (https://pimen.itch.io: Battle
+VFX Hit Spark, Battle VFX Slashes and Thrusts, Fire Spell, Thunder Spell
+Effect 01, Ice Spell Effect 01, Holy Spell Effect, Earth Spell Effect 01,
+Dark Spell Effect). Their terms: "You can use and modify this asset for
+personal and commercial purpose. Credit is not required but would be
+appreciated." Files live in `assets/images/vfx/`.
+
 ## Original
 
 The arena backdrop and the bare-hands icon are original to this project.

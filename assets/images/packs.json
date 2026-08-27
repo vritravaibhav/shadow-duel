@@ -185,7 +185,7 @@
     ]
    },
    "hit": {
-    "file": "packs/martial-hero/TakeHit.png",
+    "file": "packs/martial-hero/TakeHitClean.png",
     "n": 4,
     "fw": 200,
     "fh": 200,
@@ -377,7 +377,7 @@
     ]
    },
    "hit": {
-    "file": "packs/martial-hero-2/TakeHit.png",
+    "file": "packs/martial-hero-2/TakeHitClean.png",
     "n": 3,
     "fw": 200,
     "fh": 200,
@@ -617,7 +617,7 @@
     ]
    },
    "hit": {
-    "file": "packs/martial-hero-3/TakeHit.png",
+    "file": "packs/martial-hero-3/TakeHitClean.png",
     "n": 3,
     "fw": 126,
     "fh": 126,
@@ -841,14 +841,14 @@
     ]
    },
    "hit": {
-    "file": "packs/hero-knight-2/TakeHit.png",
-    "n": 4,
+    "file": "packs/hero-knight-2/TakeHitClean.png",
+    "n": 3,
     "fw": 140,
     "fh": 140,
     "ax": 70.0,
     "ay": 83,
     "scale": 0.26,
-    "dur": 0.333,
+    "dur": 0.25,
     "loop": false,
     "flip": false,
     "pixel": true
@@ -1065,7 +1065,7 @@
     ]
    },
    "hit": {
-    "file": "packs/huntress-2/GetHit.png",
+    "file": "packs/huntress-2/GetHitClean.png",
     "n": 3,
     "fw": 100,
     "fh": 100,
@@ -1257,7 +1257,7 @@
     ]
    },
    "hit": {
-    "file": "packs/medieval-warrior-pack-2/TakeHit.png",
+    "file": "packs/medieval-warrior-pack-2/TakeHitClean.png",
     "n": 4,
     "fw": 150,
     "fh": 150,
@@ -1453,7 +1453,7 @@
     ]
    },
    "hit": {
-    "file": "packs/medieval-warrior-pack-3/GetHit.png",
+    "file": "packs/medieval-warrior-pack-3/GetHitClean.png",
     "n": 3,
     "fw": 135,
     "fh": 135,
@@ -1697,7 +1697,7 @@
     ]
    },
    "hit": {
-    "file": "packs/fantasy-warrior/TakeHit.png",
+    "file": "packs/fantasy-warrior/TakeHitClean.png",
     "n": 3,
     "fw": 162,
     "fh": 162,
@@ -1913,7 +1913,7 @@
     ]
    },
    "hit": {
-    "file": "packs/huntress/TakeHit.png",
+    "file": "packs/huntress/TakeHitClean.png",
     "n": 3,
     "fw": 150,
     "fh": 150,
@@ -2153,14 +2153,14 @@
     ]
    },
    "hit": {
-    "file": "packs/hero-knight/TakeHit.png",
-    "n": 4,
+    "file": "packs/hero-knight/TakeHitClean.png",
+    "n": 3,
     "fw": 180,
     "fh": 180,
     "ax": 96.5,
     "ay": 114,
     "scale": 0.329,
-    "dur": 0.333,
+    "dur": 0.25,
     "loop": false,
     "flip": true,
     "pixel": true
@@ -2409,14 +2409,14 @@
     ]
    },
    "hit": {
-    "file": "packs/evil-wizard/TakeHit.png",
-    "n": 4,
+    "file": "packs/evil-wizard/TakeHitClean.png",
+    "n": 3,
     "fw": 150,
     "fh": 150,
     "ax": 71.5,
     "ay": 102,
     "scale": 0.3867,
-    "dur": 0.333,
+    "dur": 0.25,
     "loop": false,
     "flip": false,
     "pixel": true
@@ -2633,7 +2633,7 @@
     ]
    },
    "hit": {
-    "file": "packs/medieval-king-pack/Hit.png",
+    "file": "packs/medieval-king-pack/HitClean.png",
     "n": 4,
     "fw": 155,
     "fh": 155,
@@ -2825,7 +2825,7 @@
     ]
    },
    "hit": {
-    "file": "packs/medieval-king-pack-2/TakeHit.png",
+    "file": "packs/medieval-king-pack-2/TakeHitClean.png",
     "n": 4,
     "fw": 160,
     "fh": 111,
@@ -3081,7 +3081,7 @@
     ]
    },
    "hit": {
-    "file": "packs/wizard-pack/Hit.png",
+    "file": "packs/wizard-pack/HitClean.png",
     "n": 4,
     "fw": 231,
     "fh": 190,
@@ -3337,7 +3337,7 @@
     ]
    },
    "hit": {
-    "file": "packs/evil-wizard-2/TakeHit.png",
+    "file": "packs/evil-wizard-2/TakeHitClean.png",
     "n": 3,
     "fw": 250,
     "fh": 250,

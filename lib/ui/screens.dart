@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../game/arts.dart';
 import '../game/shadow_game.dart';
 import '../game/weapons.dart';
 
@@ -534,12 +535,64 @@ class _SwordRow extends StatelessWidget {
                       chip('DURABILITY ${sword.durability.toStringAsFixed(0)}'),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  _ArtLine(art: Arts.of(sword.id).$1, tint: tint),
+                  const SizedBox(height: 4),
+                  _ArtLine(art: Arts.of(sword.id).$2, tint: tint),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// One sword art: the glyph to draw, its name, effect and cooldown.
+class _ArtLine extends StatelessWidget {
+  const _ArtLine({required this.art, required this.tint});
+  final SwordArt art;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: tint, width: 1.5),
+            boxShadow: [BoxShadow(color: tint.withValues(alpha: .35), blurRadius: 8)],
+          ),
+          child: Text(art.glyph,
+              style: TextStyle(color: tint, fontSize: 12, fontWeight: FontWeight.w900, height: 1)),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.35),
+              children: [
+                TextSpan(
+                    text: 'DRAW ${art.glyph}  ',
+                    style: TextStyle(color: tint, fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.w700)),
+                TextSpan(
+                    text: art.name,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                TextSpan(text: '  —  ${art.description}'),
+                TextSpan(
+                    text: '   ${art.cooldown.toStringAsFixed(0)}s',
+                    style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

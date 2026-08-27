@@ -5,9 +5,10 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/painting.dart';
 
+import 'arts.dart';
 import 'effects.dart';
+import 'gestures.dart';
 import 'shadow_game.dart';
-import 'weapons.dart';
 
 class Hud extends PositionComponent with HasGameReference<ShadowGame> {
   Hud() : super(priority: 10);
@@ -30,6 +31,38 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
   void resetGhosts() {
     _ghostHero = game.hero.hp / game.hero.maxHp;
     _ghostVillain = 1;
+  }
+
+  void _artBadge(Canvas c, Offset center, SwordArt art, double cd) {
+    final tint = game.hero.weapon.trail.withValues(alpha: 1);
+    final ready = cd <= 0;
+    final pulse = 0.7 + 0.3 * math.sin(game.t * 6);
+    if (ready) {
+      c.drawCircle(center, 24, Paint()
+        ..color = tint.withValues(alpha: .35 * pulse)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
+    }
+    c.drawCircle(center, 19, Paint()..color = const Color(0xE6141828));
+    c.drawCircle(center, 19, Paint()
+      ..color = ready ? tint : const Color(0x55FFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = ready ? 2.5 : 1.5);
+    if (!ready) {
+      final frac = (cd / art.cooldown).clamp(0.0, 1.0);
+      c.drawArc(Rect.fromCircle(center: center, radius: 17), -math.pi / 2, math.pi * 2 * frac, true,
+          Paint()..color = const Color(0x99000000));
+    }
+    drawText(c, art.glyph, center + const Offset(0, -1),
+        size: 20, color: ready ? tint : const Color(0x88FFFFFF), letterSpacing: 0, glow: ready ? 6 : null);
+    final label = ready ? art.name.toUpperCase() : '${cd.ceil()}s';
+    c.drawRRect(
+      RRect.fromRectAndRadius(
+          Rect.fromCenter(center: center + const Offset(0, 30), width: label.length * 6.2 + 10, height: 13),
+          const Radius.circular(6)),
+      Paint()..color = const Color(0xB3101018),
+    );
+    drawText(c, label, center + const Offset(0, 30),
+        size: 8, letterSpacing: 1, color: ready ? const Color(0xE6FFFFFF) : const Color(0x99FFFFFF));
   }
 
   Path _bar(double x, double y, double w, {bool flip = false}) {
@@ -118,6 +151,11 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
     drawText(c, 'STAGE ${game.stage}', const Offset(480, 30),
         size: 13, letterSpacing: 5, color: const Color(0x66FFFFFF));
 
+    // Sword-art badges: draw V / W on the right half to cast.
+    final (artV, artW) = Arts.of(game.hero.weapon.id);
+    _artBadge(c, const Offset(836, 100), artV, game.deck.artCooldown(ArtGesture.v));
+    _artBadge(c, const Offset(908, 100), artW, game.deck.artCooldown(ArtGesture.w));
+
     // Combo counter.
     if (game.combo >= 2) {
       final pop = 1 + math.max(0.0, game.comboT - 1.3) * 3.5;
@@ -133,7 +171,7 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
     if (game.stage == 1 && game.phase == Phase.fighting && game.stageT < 14) {
       drawText(
         c,
-        'TAP strike   ◄ SWIPE ► slash   ▲ kick   ▼ heavy   ●  stand still to GUARD   ●  tap a card to switch blades',
+        'TAP strike   ◄ SWIPE ► slash   ▲ kick   ▼ heavy   ●  draw V / W for sword arts   ●  stand still to GUARD   ●  tap a card to switch blades',
         const Offset(480, 428),
         size: 12,
         letterSpacing: 1.5,
@@ -255,38 +293,66 @@ class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCa
   }
 }
 
+/// The right half of the screen: taps strike, swipes slash / kick / smash,
+/// and drawn glyphs (V, W) cast the equipped blade's sword arts. Every stroke
+/// is shown as a sword trail while the finger moves.
 class GestureZone extends PositionComponent
     with HasGameReference<ShadowGame>, TapCallbacks, DragCallbacks {
   GestureZone()
       : super(position: Vector2(kW / 2, 0), size: Vector2(kW / 2, kH), priority: 5);
 
-  Vector2 _acc = Vector2.zero();
+  final List<Offset> _pts = [];
+  int? _pointer;
+
+  Offset _viewport(Vector2 local) => Offset(local.x + position.x, local.y + position.y);
+
+  /// The card bar owns its own taps: a drag that begins on a card is not a stroke.
+  @override
+  bool containsLocalPoint(Vector2 point) {
+    if (!super.containsLocalPoint(point)) return false;
+    final vp = point + position;
+    return !game.cardBar.containsLocalPoint(vp - game.cardBar.position);
+  }
 
   @override
   void onTapUp(TapUpEvent event) {
-    game.heroAttack(MoveKind.punch);
+    game.onStroke(const GestureResult(GestureKind.tap, [], []));
   }
 
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    _acc = Vector2.zero();
+    if (_pointer != null) return; // one stroke at a time
+    _pointer = event.pointerId;
+    final p = _viewport(event.localPosition);
+    _pts
+      ..clear()
+      ..add(p);
+    game.trail.begin(p);
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
-    _acc += event.localDelta;
+    if (event.pointerId != _pointer) return;
+    final p = _viewport(event.localEndPosition);
+    _pts.add(p);
+    game.trail.extend(p);
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    if (_acc.length < 28) {
-      game.heroAttack(MoveKind.punch);
-    } else if (_acc.y.abs() > _acc.x.abs()) {
-      game.heroAttack(_acc.y < 0 ? MoveKind.kick : MoveKind.heavy);
-    } else {
-      game.heroAttack(MoveKind.slash);
-    }
+    if (event.pointerId != _pointer) return;
+    _pointer = null;
+    game.trail.end();
+    game.onStroke(GestureRecognizer.recognize(_pts));
+  }
+
+  @override
+  void onDragCancel(DragCancelEvent event) {
+    super.onDragCancel(event);
+    if (event.pointerId != _pointer) return;
+    _pointer = null;
+    game.trail.end();
   }
 }

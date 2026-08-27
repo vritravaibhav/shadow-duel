@@ -4,13 +4,18 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/painting.dart';
 
+import 'arts.dart';
 import 'background.dart';
 import 'cards.dart';
 import 'effects.dart';
 import 'fighter.dart';
+import 'gesture_fx.dart';
+import 'gestures.dart';
 import 'hud.dart';
+import 'projectile.dart';
 import 'progress.dart';
 import 'sprites.dart';
+import 'vfx.dart';
 import 'villain.dart';
 import 'weapons.dart';
 
@@ -30,17 +35,22 @@ class ArenaWorld extends World with HasGameReference<ShadowGame> {
 }
 
 class StageChar {
-  const StageChar(this.name, this.charKey);
+  const StageChar(this.name, this.charKey, {this.special});
   final String name;
   final String charKey;
+
+  /// Some villains inflict status effects of their own (see Antidote).
+  final Special? special;
 }
 
 class StageCfg {
-  const StageCfg(this.stage, this.name, this.charKey, this.hp, this.dmg, this.agg, this.speed);
+  const StageCfg(this.stage, this.name, this.charKey, this.hp, this.dmg, this.agg, this.speed,
+      {this.special});
   final int stage;
   final String name;
   final String charKey;
   final double hp, dmg, agg, speed;
+  final Special? special;
 }
 
 class ShadowGame extends FlameGame {
@@ -60,17 +70,17 @@ class ShadowGame extends FlameGame {
     StageChar('KENJI', 'martial-hero-2'),
     StageChar('RONIN', 'martial-hero-3'),
     StageChar('BRANN', 'hero-knight-2'),
-    StageChar('SERAPH', 'huntress-2'),
+    StageChar('SERAPH', 'huntress-2', special: Special.bleed),
     StageChar('GARRICK', 'medieval-warrior-pack-2'),
     StageChar('THORNE', 'medieval-warrior-pack-3'),
     StageChar('WARBRINGER', 'fantasy-warrior'),
-    StageChar('LYRA', 'huntress'),
+    StageChar('LYRA', 'huntress', special: Special.poison),
     StageChar('ALDRIC', 'hero-knight'),
-    StageChar('IGNIS', 'evil-wizard'),
+    StageChar('IGNIS', 'evil-wizard', special: Special.ignite),
     StageChar('KING OSWALD', 'medieval-king-pack'),
-    StageChar('KING VARIN', 'medieval-king-pack-2'),
-    StageChar('ZEPHYR', 'wizard-pack'),
-    StageChar('MALAKAR', 'evil-wizard-2'),
+    StageChar('KING VARIN', 'medieval-king-pack-2', special: Special.bleed),
+    StageChar('ZEPHYR', 'wizard-pack', special: Special.freeze),
+    StageChar('MALAKAR', 'evil-wizard-2', special: Special.poison),
   ];
 
   late final SpriteLibrary sprites;
@@ -80,7 +90,12 @@ class ShadowGame extends FlameGame {
   late final JoystickComponent joystick;
   late final Announcer announcer;
   late final Hud hud;
+  late final GestureTrail trail;
+  late final CardBar cardBar;
   late CardDeck deck = CardDeck(const []);
+  final List<(double, void Function())> _later = [];
+  final Map<Fighter, double> _lastImmune = {};
+  double _zoomT = 0;
 
   Phase phase = Phase.menu;
   double phaseT = 0;
@@ -126,7 +141,9 @@ class ShadowGame extends FlameGame {
     )..priority = 15;
     announcer = Announcer();
     hud = Hud();
-    camera.viewport.addAll([joystick, GestureZone(), hud, CardBar(), announcer]);
+    trail = GestureTrail();
+    cardBar = CardBar();
+    camera.viewport.addAll([joystick, GestureZone(), hud, cardBar, trail, announcer]);
     _rebuildDeck();
   }
 
@@ -145,6 +162,7 @@ class ShadowGame extends FlameGame {
       0.85 + 0.03 * i + 0.18 * tier,
       0.8 + 0.02 * i + 0.1 * tier,
       0.95 + 0.012 * i + 0.05 * tier,
+      special: c.special,
     );
   }
 
@@ -183,7 +201,18 @@ class ShadowGame extends FlameGame {
       charKey: cfg.charKey,
       lib: sprites,
       build: sprites.builds[cfg.charKey] ?? 1.0,
-      weapon: Weapon.enemyBlade,
+      weapon: cfg.special == null
+          ? Weapon.enemyBlade
+          : Weapon(
+              id: 'enemy',
+              name: 'BLADE',
+              strength: 1.0,
+              power: 1.1,
+              speed: 1.0,
+              range: 24,
+              trail: const Color(0x88FFFFFF),
+              special: cfg.special,
+            ),
       maxHealth: cfg.hp,
       aggression: cfg.agg,
       dmgScale: cfg.dmg,
@@ -260,6 +289,20 @@ class ShadowGame extends FlameGame {
       camera.viewfinder.position = Vector2.zero();
     }
 
+    if (_zoomT > 0) {
+      _zoomT = math.max(0, _zoomT - dt);
+      camera.viewfinder.zoom = 1 + 0.06 * (_zoomT / .25);
+    } else if (camera.viewfinder.zoom != 1) {
+      camera.viewfinder.zoom = 1;
+    }
+    if (_later.isNotEmpty) {
+      final due = _later.where((e) => e.$1 <= t).toList();
+      _later.removeWhere((e) => e.$1 <= t);
+      for (final (_, f) in due) {
+        f();
+      }
+    }
+
     comboT = math.max(0, comboT - dt);
     if (comboT == 0) combo = 0;
 
@@ -334,6 +377,239 @@ class ShadowGame extends FlameGame {
     if (phase == Phase.fighting && hero.alive) hero.startMove(k);
   }
 
+  /// Run [f] after [delay] seconds of game time.
+  void later(double delay, void Function() f) => _later.add((t + delay, f));
+
+  /// A finished finger stroke on the right half of the screen.
+  void onStroke(GestureResult r) {
+    switch (r.kind) {
+      case GestureKind.tap:
+        heroAttack(MoveKind.punch);
+      case GestureKind.swipeUp:
+        heroAttack(MoveKind.kick);
+      case GestureKind.swipeDown:
+        heroAttack(MoveKind.heavy);
+      case GestureKind.swipeLeft:
+      case GestureKind.swipeRight:
+        heroAttack(MoveKind.slash);
+      case GestureKind.glyphV:
+        castArt(ArtGesture.v, glyph: r.points);
+      case GestureKind.glyphW:
+        castArt(ArtGesture.w, glyph: r.points);
+    }
+  }
+
+  // ---- Sword arts ------------------------------------------------------------
+
+  void castArt(ArtGesture g, {List<Offset>? glyph}) {
+    if (phase != Phase.fighting || !hero.alive) return;
+    final art = Arts.art(hero.weapon.id, g);
+    if (hero.stunned || hero.state == FState.hit) {
+      if (glyph != null) trail.flash(glyph, label: 'STAGGERED', ok: false);
+      return;
+    }
+    final cd = deck.artCooldown(g);
+    if (cd > 0) {
+      if (glyph != null) trail.flash(glyph, label: '${art.name}  ·  ${cd.ceil()}s', ok: false);
+      return;
+    }
+    deck.startArt(g, art.cooldown);
+    if (glyph != null) trail.flash(glyph, label: '${art.glyph}  ·  ${art.name}', ok: true);
+    _hitStop = math.max(_hitStop, .07);
+    _zoomT = .25;
+    _executeArt(art);
+  }
+
+  bool _inFront(double range, {double dz = 40}) {
+    final v = villain;
+    if (v == null || !v.alive) return false;
+    final dx = (v.wx - hero.wx) * hero.facing;
+    return dx > -12 && dx < range && (v.zPos - hero.zPos).abs() < dz;
+  }
+
+  void _fire(ProjectileStyle style, double dmg, {double kx = 220, double kup = 0, void Function(Fighter)? onHit}) {
+    const hitVfx = {
+      ProjectileStyle.crescent: 'hit3',
+      ProjectileStyle.fire: 'fire_hit',
+      ProjectileStyle.ice: 'ice_hit',
+      ProjectileStyle.holy: 'holy_impact',
+    };
+    world.add(ArtProjectile(
+      owner: hero,
+      target: villain,
+      style: style,
+      color: hero.weapon.trail.withValues(alpha: 1),
+      dmg: dmg,
+      kx: kx,
+      kup: kup,
+      onHit: onHit,
+      hitVfx: hitVfx[style],
+    ));
+    world.add(SparkBurst(at: Vector2(hero.position.x + hero.facing * 40, hero.position.y - 68),
+        palette: [hero.weapon.trail.withValues(alpha: 1), const Color(0xFFFFFFFF)]));
+  }
+
+  void _healFx(Fighter f) {
+    world.add(SparkBurst(at: Vector2(f.position.x, f.position.y - 70),
+        heavy: true, palette: const [Color(0xFF9CFF6B), Color(0xFFE8FFDD)]));
+    world.add(VfxAnim('holy_repeat', at: Vector2(f.position.x, f.position.y - 60), scale_: 4,
+        tint: const Color(0xFFB8FFA8)));
+  }
+
+  void _ghosts(double fromX, double toX, double z, int count) {
+    final snap = hero.snapshot();
+    for (var k = 0; k < count; k++) {
+      final x = fromX + (toX - fromX) * k / count;
+      world.add(AfterImage(
+        at: Vector2(x, kFloorTop + z),
+        sprite: snap.sprite,
+        offset: snap.offset,
+        size_: snap.size,
+        sx: snap.sx,
+        sy: snap.sy,
+        color: hero.weapon.trail.withValues(alpha: 1),
+        pixel: snap.pixel,
+        life: .28 + k * .05,
+      ));
+    }
+  }
+
+  void _executeArt(SwordArt art) {
+    final v = villain;
+    final str = hero.weapon.strength;
+    final tint = hero.weapon.trail.withValues(alpha: 1);
+    switch (art.kind) {
+      case ArtKind.flurry:
+        for (var i = 0; i < 3; i++) {
+          later(i * .09, () {
+            if (_inFront(96)) v!.artHit(hero, 5, kx: 60, kup: i == 2 ? 140 : 0);
+          });
+        }
+      case ArtKind.breathe:
+        hero.heal(8);
+        _healFx(hero);
+      case ArtKind.flashStep:
+        final from = hero.wx;
+        if (v != null && v.alive) {
+          final to = (v.wx + hero.facing * 72).clamp(-kArenaHalf, kArenaHalf);
+          _ghosts(from, to, hero.zPos, 4);
+          hero.wx = to;
+          hero.zPos = v.zPos;
+          hero.facing = -hero.facing;
+          for (var i = 0; i < 3; i++) {
+            later(.04 + i * .08, () {
+              if (v.alive) v.artHit(hero, 6 * str, kx: 50, kup: i == 2 ? 180 : 0);
+            });
+          }
+        } else {
+          final to = (from + hero.facing * 140).clamp(-kArenaHalf, kArenaHalf);
+          _ghosts(from, to, hero.zPos, 4);
+          hero.wx = to;
+        }
+      case ArtKind.secondWind:
+        hero.heal(hero.maxHp * .15);
+        _healFx(hero);
+      case ArtKind.crescentCut:
+        _fire(ProjectileStyle.crescent, 18 * str, onHit: (t) => t.addDot(4, 3, Fighter.bleedColor));
+      case ArtKind.iaiStance:
+        hero.invulnT = 1.5;
+        hero.guaranteedCrit = true;
+      case ArtKind.earthsplitter:
+        world.add(RingWave(at: Vector2(hero.position.x, hero.position.y), color: tint));
+        world.add(VfxAnim('earth_impact', at: Vector2(hero.position.x + hero.facing * 60, hero.position.y + 4),
+            scale_: 4, bottom: true, additive: false, flipX: hero.facing < 0));
+        _shakeT = .3;
+        _shakeMag = 12;
+        _hitStop = .1;
+        if (v != null && v.alive && (v.wx - hero.wx).abs() < 260 && (v.zPos - hero.zPos).abs() < 50) {
+          v.artHit(hero, 28 * str, kx: 380, kup: 260, stun: 1.0);
+        }
+      case ArtKind.ironWill:
+        hero.guardT = 5;
+      case ArtKind.fireWave:
+        _fire(ProjectileStyle.fire, 16 * str, onHit: (t) => t.addDot(6, 4, Fighter.burnColor));
+      case ArtKind.blazingAura:
+        hero.auraT = 6;
+        hero.heal(10);
+        _healFx(hero);
+      case ArtKind.glacialLance:
+        _fire(ProjectileStyle.ice, 14 * str, onHit: (t) => t.slowT = 3.5);
+      case ArtKind.iceArmor:
+        hero.shieldHp = 30;
+        world.add(VfxAnim('ice2_start', at: Vector2(hero.position.x, hero.position.y - 60), scale_: 4.5));
+        world.add(SparkBurst(at: Vector2(hero.position.x, hero.position.y - 70),
+            palette: const [Color(0xFF9FDBFF), Color(0xFFFFFFFF)]));
+      case ArtKind.shadowStrike:
+        if (v != null && v.alive) {
+          final from = hero.wx;
+          final to = (v.wx - v.facing * 46).clamp(-kArenaHalf, kArenaHalf);
+          _ghosts(from, to, hero.zPos, 3);
+          world.add(VfxAnim('dark_0', at: Vector2(from, hero.position.y - 50), scale_: 4));
+          world.add(VfxAnim('dark_1', at: Vector2(to, hero.position.y - 50), scale_: 4));
+          hero.wx = to;
+          hero.zPos = v.zPos;
+          hero.facing = v.facing;
+          later(.05, () {
+            if (v.alive) v.artHit(hero, 22 * str, kx: 240, crit: true);
+          });
+        }
+      case ArtKind.veil:
+        hero.veilT = 3;
+        _ghosts(hero.wx, hero.wx, hero.zPos, 1);
+        world.add(VfxAnim('dark_0', at: Vector2(hero.position.x, hero.position.y - 50), scale_: 4.5));
+      case ArtKind.thunderclap:
+        final target = (v != null && v.alive) ? v.position : Vector2(hero.position.x + hero.facing * 140, hero.position.y);
+        world.add(LightningBolt(from: Vector2(target.x + 40, target.y - 360), to: Vector2(target.x, target.y - 60), color: tint));
+        _shakeT = .3;
+        _shakeMag = 9;
+        world.add(VfxAnim('thunder_hit', at: Vector2(target.x, target.y - 50), scale_: 5));
+        if (v != null && v.alive) v.artHit(hero, 20 * str, kx: 120, stun: 1.2);
+      case ArtKind.stormCharge:
+        hero.hasteT = 6;
+      case ArtKind.toxicFang:
+        if (_inFront(110)) {
+          v!.artHit(hero, 12 * str, kx: 150);
+          v.addDot(5, 7, Fighter.poisonColor);
+        }
+      case ArtKind.antidote:
+        hero.cleanse();
+        hero.heal(20);
+        _healFx(hero);
+      case ArtKind.holyLance:
+        _fire(ProjectileStyle.holy, 26 * str, kup: 200);
+      case ArtKind.sanctuary:
+        hero.invulnT = 3;
+        hero.heal(25);
+        _healFx(hero);
+        world.add(VfxAnim('holy2', at: Vector2(hero.position.x, hero.position.y - 70), scale_: 4));
+      case ArtKind.dragonBreath:
+        world.add(FireCone(at: Vector2(hero.position.x + hero.facing * 30, hero.position.y - 70), dir: hero.facing));
+        final breathAt = Vector2(hero.position.x + hero.facing * 110, hero.position.y - 70);
+        world.add(VfxAnim('fire_breath_1', at: breathAt, scale_: 3.5, flipX: hero.facing < 0, loop: true, life: .38));
+        later(.38, () => world.add(VfxAnim('fire_breath_2', at: breathAt, scale_: 3.5, flipX: hero.facing < 0)));
+        if (v != null && v.alive) {
+          world.add(VfxAnim('fire_hit', at: Vector2(v.position.x, v.position.y - 60), scale_: 3.5, flipX: hero.facing < 0));
+        }
+        _shakeT = .25;
+        _shakeMag = 7;
+        if (_inFront(220, dz: 60)) {
+          v!.artHit(hero, 30 * str, kx: 300, kup: 120);
+          v.addDot(8, 4, Fighter.burnColor);
+        }
+      case ArtKind.draconicRage:
+        hero.rageT = 6;
+        hero.lifestealT = 6;
+    }
+  }
+
+  /// A hit bounced off an untouchable fighter.
+  void onImmune(Fighter f) {
+    if (t - (_lastImmune[f] ?? -1) < .3) return;
+    _lastImmune[f] = t;
+    world.add(DamagePopup(Vector2(f.position.x, f.position.y - 96), 'IMMUNE'));
+    world.add(SparkBurst(at: Vector2(f.position.x, f.position.y - 70), blocked: true));
+  }
+
   // ---- Combat resolution -----------------------------------------------------
 
   void onStrike(Fighter from, Fighter target, MoveSpec m, double dmg,
@@ -347,6 +623,11 @@ class ShadowGame extends FlameGame {
     world.add(SparkBurst(
         at: cp, heavy: m.heavy || crit, blocked: blocked, ko: killed || erupt));
     if (!blocked) {
+      final spark = ['hit1', 'hit2', 'hit3'][_rng.nextInt(3)];
+      world.add(VfxAnim(spark, at: cp, scale_: m.heavy || crit ? 3.4 : 2.6, flipX: from.facing < 0));
+      if (m.kind == MoveKind.slash && m.duration > 0) {
+        world.add(VfxAnim('smear_h', at: cp, scale_: 3, flipX: from.facing < 0, priority: 505));
+      }
       world.add(DamagePopup(cp + Vector2(0, -20), dmg.round().toString(),
           big: m.heavy || killed || crit));
       if (crit) {
@@ -366,6 +647,9 @@ class ShadowGame extends FlameGame {
         combo++;
         comboT = 1.5;
       }
+    }
+    if (!blocked && from.lifestealT > 0 && from.weapon.special != Special.lifesteal) {
+      from.heal(dmg * 0.25);
     }
 
     if (!blocked && sp != null && target.alive) {

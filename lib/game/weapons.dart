@@ -188,6 +188,11 @@ class MoveSpec {
   final double winStart, winEnd;
   final double dmg, range, kx, kup, shake;
   final bool heavy;
+
+  /// A sword-art strike: unblockable, resolved outside the swing state machine.
+  factory MoveSpec.art(double dmg, {double kx = 200, double kup = 0, double shake = 6}) =>
+      MoveSpec(MoveKind.heavy, 'heavy', 0,
+          winStart: 0, winEnd: 0, dmg: dmg, range: 0, kx: kx, kup: kup, shake: shake, heavy: true);
 }
 
 Map<MoveKind, MoveSpec> buildMoves(Weapon w, SpriteLibrary lib, String charKey) {

@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:flame/cache.dart';
 import 'package:flame/components.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'vfx.dart';
 import 'weapons.dart';
 
 /// One animation strip from assets/images plus its atlas data.
@@ -65,7 +67,7 @@ class WeaponArt {
 /// (imported character packs), the sword icons and the UI pieces.
 class SpriteLibrary {
   SpriteLibrary._(this.chars, this.builds, this.portraits, this.weapons,
-      this.icons, this.swordIcons, this.ui, this.arena);
+      this.icons, this.swordIcons, this.ui, this.arena, this.vfx);
 
   final Map<String, Map<String, BakedAnim>> chars;
 
@@ -77,6 +79,9 @@ class SpriteLibrary {
   final Map<String, Sprite> swordIcons;
   final Map<String, Sprite> ui;
   final Sprite arena;
+
+  /// Downloaded pixel VFX strips (assets/images/vfx.json).
+  final Map<String, VfxSpec> vfx;
 
   static const uiNames = [
     'card_grey', 'card_blue', 'card_red', 'card_yellow', 'card_green',
@@ -145,8 +150,27 @@ class SpriteLibrary {
     final arena =
         Sprite(await images.load((meta['arena'] as Map)['file'] as String));
 
+    // Only a missing atlas is tolerated (effects fall back to the drawn
+    // versions); a broken entry or PNG must fail loudly.
+    String? vfxJson;
+    try {
+      vfxJson = await rootBundle.loadString('assets/images/vfx.json');
+    } on FlutterError {
+      vfxJson = null;
+    }
+    final vfx = <String, VfxSpec>{};
+    if (vfxJson != null) {
+      final vmeta = jsonDecode(vfxJson) as Map<String, dynamic>;
+      for (final e in vmeta.entries) {
+        final m = e.value as Map<String, dynamic>;
+        await images.load(m['file'] as String);
+        vfx[e.key] = VfxSpec(m['file'] as String, (m['fw'] as num).toInt(), (m['fh'] as num).toInt(),
+            (m['n'] as num).toInt(), (m['fps'] as num).toDouble(), (m['row'] as num).toInt());
+      }
+    }
+
     return SpriteLibrary._(
-        chars, builds, portraits, weapons, icons, swordIcons, ui, arena);
+        chars, builds, portraits, weapons, icons, swordIcons, ui, arena, vfx);
   }
 
   static Future<BakedAnim> _readAnim(

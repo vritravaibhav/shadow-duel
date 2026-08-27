@@ -32,7 +32,7 @@ class VillainFighter extends Fighter {
   @override
   void update(double dt) {
     final hero = opponent;
-    if (game.phase == Phase.fighting && alive && hero != null && hero.alive) {
+    if (game.phase == Phase.fighting && alive && hero != null && hero.alive && !stunned && hero.veilT <= 0) {
       _ai(dt, hero);
     } else {
       ix = 0;
