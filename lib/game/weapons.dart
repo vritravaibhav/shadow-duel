@@ -1,0 +1,248 @@
+import 'dart:ui';
+
+import 'sprites.dart';
+
+enum MoveKind { punch, kick, slash, heavy }
+
+/// A sword's special ability. Passives apply while equipped; the rest
+/// trigger on hit (or on heavy hit).
+enum Special {
+  quickDraw,
+  bleed,
+  cleave,
+  ignite,
+  freeze,
+  lifesteal,
+  shock,
+  poison,
+  radiance,
+  dragonfire,
+}
+
+extension SpecialInfo on Special {
+  String get title => switch (this) {
+        Special.quickDraw => 'Quick Draw',
+        Special.bleed => 'Bleed',
+        Special.cleave => 'Cleave',
+        Special.ignite => 'Ignite',
+        Special.freeze => 'Freeze',
+        Special.lifesteal => 'Lifesteal',
+        Special.shock => 'Shock',
+        Special.poison => 'Poison',
+        Special.radiance => 'Radiance',
+        Special.dragonfire => 'Dragonfire',
+      };
+
+  String get description => switch (this) {
+        Special.quickDraw => 'Swings 25% faster',
+        Special.bleed => 'Hits bleed for 3s',
+        Special.cleave => 'Heavy hits launch the enemy across the arena',
+        Special.ignite => 'Heavy hits set the enemy ablaze',
+        Special.freeze => 'Heavy hits chill the enemy: slow moves and swings',
+        Special.lifesteal => 'Heals 25% of damage dealt',
+        Special.shock => 'Hits stun longer and headshot twice as often',
+        Special.poison => 'Hits poison for 7s',
+        Special.radiance => 'Take 40% less damage while equipped',
+        Special.dragonfire => 'Heavy hits erupt: burn, blast and launch',
+      };
+}
+
+/// Runtime weapon stats. Villains use plain stat sets; the hero's weapon is
+/// whichever [Sword] card is equipped, or [fists] when none is.
+class Weapon {
+  const Weapon({
+    required this.id,
+    required this.name,
+    required this.strength,
+    required this.power,
+    required this.speed,
+    required this.range,
+    required this.trail,
+    this.special,
+  });
+
+  final String id;
+  final String name;
+
+  /// Strength multiplies all damage; power additionally multiplies the heavy.
+  final double strength, power, speed, range;
+  final Color trail;
+  final Special? special;
+
+  static const fists = Weapon(
+    id: 'fists',
+    name: 'FISTS',
+    strength: 0.7,
+    power: 0.8,
+    speed: 1.15,
+    range: 0,
+    trail: Color(0x55FFFFFF),
+  );
+
+  /// Generic villain blade.
+  static const enemyBlade = Weapon(
+    id: 'enemy',
+    name: 'BLADE',
+    strength: 1.0,
+    power: 1.1,
+    speed: 1.0,
+    range: 24,
+    trail: Color(0x88FFFFFF),
+  );
+}
+
+/// A collectible sword card: a [Weapon] plus card economy stats.
+class Sword {
+  const Sword({
+    required this.weapon,
+    required this.recharge,
+    required this.durability,
+    required this.unlockLevel,
+    required this.icon,
+  });
+
+  final Weapon weapon;
+
+  /// Seconds a card stays unavailable after it shatters (half that after a
+  /// voluntary switch).
+  final double recharge;
+  final double durability;
+
+  /// Stage that must be cleared to own this sword (0 = starter).
+  final int unlockLevel;
+  final String icon;
+
+  String get id => weapon.id;
+  String get name => weapon.name;
+}
+
+class Swords {
+  static const all = [
+    Sword(
+      weapon: Weapon(id: 'wakizashi', name: 'WAKIZASHI', strength: 0.9, power: 1.0, speed: 1.25, range: 22, trail: Color(0xFFCFFFE0), special: Special.quickDraw),
+      recharge: 6, durability: 90, unlockLevel: 0, icon: 'wakizashi',
+    ),
+    Sword(
+      weapon: Weapon(id: 'katana', name: 'KATANA', strength: 1.15, power: 1.2, speed: 1.0, range: 34, trail: Color(0xFF7DEBFF), special: Special.bleed),
+      recharge: 8, durability: 100, unlockLevel: 0, icon: 'katana',
+    ),
+    Sword(
+      weapon: Weapon(id: 'nodachi', name: 'NODACHI', strength: 1.5, power: 1.7, speed: 0.8, range: 46, trail: Color(0xFFFFD08A), special: Special.cleave),
+      recharge: 12, durability: 120, unlockLevel: 2, icon: 'nodachi',
+    ),
+    Sword(
+      weapon: Weapon(id: 'flame', name: 'FLAME BLADE', strength: 1.3, power: 1.5, speed: 0.95, range: 36, trail: Color(0xFFFF8A3D), special: Special.ignite),
+      recharge: 10, durability: 100, unlockLevel: 4, icon: 'flame',
+    ),
+    Sword(
+      weapon: Weapon(id: 'frost', name: 'FROST EDGE', strength: 1.2, power: 1.4, speed: 1.0, range: 36, trail: Color(0xFF9FDBFF), special: Special.freeze),
+      recharge: 10, durability: 110, unlockLevel: 6, icon: 'frost',
+    ),
+    Sword(
+      weapon: Weapon(id: 'shadow', name: 'SHADOW BLADE', strength: 1.25, power: 1.3, speed: 1.1, range: 34, trail: Color(0xFFC77DFF), special: Special.lifesteal),
+      recharge: 9, durability: 95, unlockLevel: 8, icon: 'shadow',
+    ),
+    Sword(
+      weapon: Weapon(id: 'thunder', name: 'THUNDER FANG', strength: 1.4, power: 1.5, speed: 1.05, range: 38, trail: Color(0xFFFFF176), special: Special.shock),
+      recharge: 11, durability: 105, unlockLevel: 10, icon: 'thunder',
+    ),
+    Sword(
+      weapon: Weapon(id: 'venom', name: 'VENOM KRIS', strength: 1.1, power: 1.2, speed: 1.2, range: 26, trail: Color(0xFF9CFF6B), special: Special.poison),
+      recharge: 7, durability: 85, unlockLevel: 12, icon: 'venom',
+    ),
+    Sword(
+      weapon: Weapon(id: 'excalibur', name: 'EXCALIBUR', strength: 1.6, power: 1.8, speed: 0.95, range: 40, trail: Color(0xFFFFF4C2), special: Special.radiance),
+      recharge: 14, durability: 140, unlockLevel: 14, icon: 'excalibur',
+    ),
+    Sword(
+      weapon: Weapon(id: 'dragon', name: 'DRAGON CLEAVER', strength: 1.8, power: 2.2, speed: 0.75, range: 48, trail: Color(0xFFFF5C3D), special: Special.dragonfire),
+      recharge: 16, durability: 150, unlockLevel: 16, icon: 'dragon',
+    ),
+  ];
+
+  static Sword byId(String id) => all.firstWhere((s) => s.id == id);
+
+  /// Swords owned once [highestCleared] stages are beaten.
+  static List<Sword> unlockedAt(int highestCleared) =>
+      all.where((s) => s.unlockLevel <= highestCleared).toList();
+}
+
+class MoveSpec {
+  MoveSpec(
+    this.kind,
+    this.animName,
+    this.duration, {
+    required this.winStart,
+    required this.winEnd,
+    required this.dmg,
+    required this.range,
+    required this.kx,
+    required this.kup,
+    required this.shake,
+    this.heavy = false,
+  });
+
+  final MoveKind kind;
+  final String animName;
+  final double duration;
+  final double winStart, winEnd;
+  final double dmg, range, kx, kup, shake;
+  final bool heavy;
+}
+
+Map<MoveKind, MoveSpec> buildMoves(Weapon w, SpriteLibrary lib, String charKey) {
+  double dur(String name) => lib.anim(charKey, name).duration;
+  final cleave = w.special == Special.cleave ? 1.8 : 1.0;
+  final dragon = w.special == Special.dragonfire ? 1.6 : 1.0;
+  return {
+    MoveKind.punch: MoveSpec(
+      MoveKind.punch,
+      'punch',
+      dur('punch') / (w.speed * 1.08),
+      winStart: .42,
+      winEnd: .68,
+      dmg: 7 * w.strength,
+      range: 42 + w.range * .5,
+      kx: 90,
+      kup: 0,
+      shake: 2,
+    ),
+    MoveKind.kick: MoveSpec(
+      MoveKind.kick,
+      'kick',
+      dur('kick'),
+      winStart: .4,
+      winEnd: .66,
+      dmg: 12,
+      range: 56,
+      kx: 150,
+      kup: 320,
+      shake: 3,
+    ),
+    MoveKind.slash: MoveSpec(
+      MoveKind.slash,
+      'slash',
+      dur('slash') / w.speed,
+      winStart: .42,
+      winEnd: .64,
+      dmg: 13 * w.strength,
+      range: 46 + w.range,
+      kx: 170,
+      kup: 0,
+      shake: 4,
+    ),
+    MoveKind.heavy: MoveSpec(
+      MoveKind.heavy,
+      'heavy',
+      dur('heavy') / w.speed,
+      winStart: .52,
+      winEnd: .7,
+      dmg: 16 * w.strength * w.power,
+      range: 48 + w.range * .8,
+      kx: 260 * cleave * dragon,
+      kup: 120 * cleave,
+      shake: 8 * cleave,
+      heavy: true,
+    ),
+  };
+}

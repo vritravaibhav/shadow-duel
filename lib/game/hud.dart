@@ -1,0 +1,292 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flame/components.dart';
+import 'package:flame/events.dart';
+import 'package:flutter/painting.dart';
+
+import 'effects.dart';
+import 'shadow_game.dart';
+import 'weapons.dart';
+
+class Hud extends PositionComponent with HasGameReference<ShadowGame> {
+  Hud() : super(priority: 10);
+
+  double _ghostHero = 1, _ghostVillain = 1;
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    final ht = game.hero.hp / game.hero.maxHp;
+    _ghostHero = ht > _ghostHero ? ht : _ghostHero + (ht - _ghostHero) * math.min(1, 4 * dt);
+    final v = game.villain;
+    if (v != null) {
+      final vt = v.hp / v.maxHp;
+      _ghostVillain =
+          vt > _ghostVillain ? vt : _ghostVillain + (vt - _ghostVillain) * math.min(1, 4 * dt);
+    }
+  }
+
+  void resetGhosts() {
+    _ghostHero = game.hero.hp / game.hero.maxHp;
+    _ghostVillain = 1;
+  }
+
+  Path _bar(double x, double y, double w, {bool flip = false}) {
+    const h = 18.0, skew = 12.0;
+    return flip
+        ? (Path()
+          ..moveTo(x, y)
+          ..lineTo(x - w, y)
+          ..lineTo(x - w + skew, y + h)
+          ..lineTo(x, y + h)
+          ..close())
+        : (Path()
+          ..moveTo(x, y)
+          ..lineTo(x + w, y)
+          ..lineTo(x + w - skew, y + h)
+          ..lineTo(x, y + h)
+          ..close());
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    if (game.phase == Phase.menu) return;
+    final c = canvas;
+    const barW = 340.0, y = 24.0;
+    final edge = Paint()
+      ..color = const Color(0x30FFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    final bg = Paint()..color = const Color(0x66101018);
+
+    // Hero bar (drains right-to-left).
+    final heroFrac = (game.hero.hp / game.hero.maxHp).clamp(0.0, 1.0);
+    c.drawPath(_bar(72, y, barW), bg);
+    c.drawPath(_bar(72, y, barW * _ghostHero), Paint()..color = const Color(0x55FFFFFF));
+    if (heroFrac > 0) {
+      c.drawPath(
+        _bar(72, y, barW * heroFrac),
+        Paint()
+          ..shader = ui.Gradient.linear(
+            const Offset(72, 0),
+            const Offset(72 + barW, 0),
+            const [Color(0xFF6CF0A0), Color(0xFF1F8A54)],
+          ),
+      );
+    }
+    c.drawPath(_bar(72, y, barW), edge);
+    drawText(c, game.hero.charName, const Offset(126, 58),
+        size: 13, letterSpacing: 4, color: const Color(0x99FFFFFF));
+
+    // Villain bar (mirrored, drains left-to-right).
+    final v = game.villain;
+    final vFrac = v == null ? 0.0 : (v.hp / v.maxHp).clamp(0.0, 1.0);
+    c.drawPath(_bar(888, y, barW, flip: true), bg);
+    c.drawPath(_bar(888, y, barW * _ghostVillain, flip: true),
+        Paint()..color = const Color(0x55FFFFFF));
+    if (vFrac > 0) {
+      c.drawPath(
+        _bar(888, y, barW * vFrac, flip: true),
+        Paint()
+          ..shader = ui.Gradient.linear(
+            const Offset(888, 0),
+            const Offset(888 - barW, 0),
+            const [Color(0xFFFF6B6B), Color(0xFF8F1D2C)],
+          ),
+      );
+    }
+    c.drawPath(_bar(888, y, barW, flip: true), edge);
+    if (v != null) {
+      drawText(c, v.charName, const Offset(834, 58),
+          size: 13, letterSpacing: 4, color: const Color(0x99FFFFFF));
+    }
+
+    // Headshot portraits flanking the bars, facing inward.
+    game.sprites.portraits[game.hero.charKey]
+        ?.render(c, position: Vector2(20, 18), size: Vector2(46, 46));
+    if (v != null) {
+      c.save();
+      c.translate(917, 41);
+      c.scale(-1, 1);
+      game.sprites.portraits[v.charKey]
+          ?.render(c, position: Vector2(-23, -23), size: Vector2(46, 46));
+      c.restore();
+    }
+
+    drawText(c, 'STAGE ${game.stage}', const Offset(480, 30),
+        size: 13, letterSpacing: 5, color: const Color(0x66FFFFFF));
+
+    // Combo counter.
+    if (game.combo >= 2) {
+      final pop = 1 + math.max(0.0, game.comboT - 1.3) * 3.5;
+      drawText(c, '${game.combo} HITS', const Offset(120, 96),
+          size: 25 * pop,
+          color: const Color(0xFFFFD75A),
+          letterSpacing: 3,
+          glow: 5,
+          style: FontStyle.italic);
+    }
+
+    // Controls hint for the first moments of stage 1.
+    if (game.stage == 1 && game.phase == Phase.fighting && game.stageT < 14) {
+      drawText(
+        c,
+        'TAP strike   ◄ SWIPE ► slash   ▲ kick   ▼ heavy   ●  stand still to GUARD   ●  tap a card to switch blades',
+        const Offset(480, 428),
+        size: 12,
+        letterSpacing: 1.5,
+        color: const Color(0x73FFFFFF),
+        weight: FontWeight.w600,
+      );
+    }
+  }
+}
+
+/// Clash-style sword card bar at the bottom center: bare hands + every owned
+/// sword. Shows durability, recharge, and the equipped card.
+class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCallbacks {
+  CardBar() : super(position: Vector2(0, kH - 96), size: Vector2(kW, 96), priority: 25);
+
+  static const cardW = 58.0, gap = 8.0;
+  double _pop = 0;
+  int _popIndex = -2;
+
+  int get _count => game.deck.cards.length + 1;
+  double get _startX => kW / 2 - (_count * cardW + (_count - 1) * gap) / 2;
+
+  Rect _cardRect(int slot) {
+    final x = _startX + slot * (cardW + gap);
+    return Rect.fromLTWH(x, 12, cardW, cardW);
+  }
+
+  @override
+  bool containsLocalPoint(Vector2 point) {
+    if (game.phase == Phase.menu) return false;
+    for (var i = 0; i < _count; i++) {
+      if (_cardRect(i).inflate(4).contains(point.toOffset())) return true;
+    }
+    return false;
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    final p = event.localPosition.toOffset();
+    for (var i = 0; i < _count; i++) {
+      if (_cardRect(i).inflate(4).contains(p)) {
+        game.equipCard(i - 1);
+        _pop = 1;
+        _popIndex = i - 1;
+        return;
+      }
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _pop = math.max(0, _pop - 5 * dt);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    if (game.phase == Phase.menu) return;
+    final deck = game.deck;
+    final ui = game.sprites.ui;
+    for (var slot = 0; slot < _count; slot++) {
+      final index = slot - 1;
+      final r = _cardRect(slot);
+      final equipped = deck.equipped == index;
+      final card = index < 0 ? null : deck.cards[index];
+      final ready = card == null || card.ready;
+
+      canvas.save();
+      final s = 1.0 + (_popIndex == index ? _pop * .12 : 0.0) + (equipped ? .06 : 0.0);
+      canvas.translate(r.center.dx, r.center.dy);
+      canvas.scale(s, s);
+      canvas.translate(-r.center.dx, -r.center.dy);
+
+      final frame = equipped
+          ? 'card_yellow'
+          : (!ready ? 'card_red' : (card == null ? 'card_grey' : 'card_blue'));
+      ui[frame]!.render(canvas, position: Vector2(r.left, r.top), size: Vector2(cardW, cardW));
+
+      final icon = card == null ? game.sprites.icons['fists'] : game.sprites.swordIcons[card.sword.id];
+      icon?.render(
+        canvas,
+        position: Vector2(r.left + 9, r.top + 6),
+        size: Vector2(40, 40),
+        overridePaint: Paint()
+          ..filterQuality = FilterQuality.none
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: ready ? 1 : .45),
+      );
+
+      if (card != null) {
+        // Durability bar.
+        final frac = card.durabilityFrac;
+        final barR = Rect.fromLTWH(r.left + 8, r.bottom - 11, cardW - 16, 5);
+        canvas.drawRRect(RRect.fromRectAndRadius(barR, const Radius.circular(2)),
+            Paint()..color = const Color(0x99000000));
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+              Rect.fromLTWH(barR.left, barR.top, barR.width * frac, barR.height),
+              const Radius.circular(2)),
+          Paint()
+            ..color = Color.lerp(const Color(0xFFFF5A5A), const Color(0xFF6CF0A0), frac)!,
+        );
+        // Recharge overlay.
+        if (card.cooldown > 0) {
+          final cf = card.cooldownFrac;
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+                Rect.fromLTWH(r.left, r.top, r.width, r.height * cf), const Radius.circular(8)),
+            Paint()..color = const Color(0xB3101018),
+          );
+          drawText(canvas, '${card.cooldown.ceil()}s', r.center,
+              size: 16, color: const Color(0xFFFFFFFF), glow: 4);
+        }
+      }
+      drawText(canvas, card == null ? 'FISTS' : card.sword.name, Offset(r.center.dx, r.bottom + 9),
+          size: 7.5, letterSpacing: 1, color: Color(equipped ? 0xFFFFD75A : 0x99FFFFFF));
+      canvas.restore();
+    }
+  }
+}
+
+class GestureZone extends PositionComponent
+    with HasGameReference<ShadowGame>, TapCallbacks, DragCallbacks {
+  GestureZone()
+      : super(position: Vector2(kW / 2, 0), size: Vector2(kW / 2, kH), priority: 5);
+
+  Vector2 _acc = Vector2.zero();
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    game.heroAttack(MoveKind.punch);
+  }
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    _acc = Vector2.zero();
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    _acc += event.localDelta;
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    if (_acc.length < 28) {
+      game.heroAttack(MoveKind.punch);
+    } else if (_acc.y.abs() > _acc.x.abs()) {
+      game.heroAttack(_acc.y < 0 ? MoveKind.kick : MoveKind.heavy);
+    } else {
+      game.heroAttack(MoveKind.slash);
+    }
+  }
+}

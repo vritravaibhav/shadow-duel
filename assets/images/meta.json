@@ -1,0 +1,31 @@
+{
+ "chars": {},
+ "portraits": {},
+ "weapons": {
+  "katana": {
+   "file": "weapons/katana.png",
+   "w": 316.0,
+   "h": 64.0,
+   "gx": 52.0,
+   "gy": 32.0,
+   "scale": 4.0
+  },
+  "axe": {
+   "file": "weapons/axe.png",
+   "w": 268.0,
+   "h": 160.0,
+   "gx": 40.0,
+   "gy": 80.0,
+   "scale": 4.0
+  }
+ },
+ "icons": {
+  "fists": "weapons/fists_icon.png",
+  "katana": "weapons/katana_icon.png",
+  "axe": "weapons/axe_icon.png"
+ },
+ "arena": {
+  "file": "arena.png",
+  "scale": 2
+ }
+}

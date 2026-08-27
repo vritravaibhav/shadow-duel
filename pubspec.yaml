@@ -1,0 +1,41 @@
+name: shadow_duel
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flame: ^1.38.0
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.5.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/weapons/
+    - assets/images/packs/martial-hero/
+    - assets/images/packs/martial-hero-2/
+    - assets/images/packs/martial-hero-3/
+    - assets/images/packs/fantasy-warrior/
+    - assets/images/packs/evil-wizard-2/
+    - assets/images/packs/evil-wizard/
+    - assets/images/packs/medieval-king-pack/
+    - assets/images/packs/medieval-king-pack-2/
+    - assets/images/packs/medieval-warrior-pack-2/
+    - assets/images/packs/medieval-warrior-pack-3/
+    - assets/images/packs/huntress/
+    - assets/images/packs/huntress-2/
+    - assets/images/packs/wizard-pack/
+    - assets/images/packs/hero-knight/
+    - assets/images/packs/hero-knight-2/
+    - assets/images/ui/
+    - assets/images/swords/
