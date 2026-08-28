@@ -79,9 +79,16 @@ jobs:
           retention-days: 14
 
   web:
-    name: Build web (see README caveats)
+    name: Build & deploy web
     runs-on: ubuntu-latest
     needs: analyze-and-test
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -89,10 +96,43 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+
+      # base-href must match the repo name for a project Pages site.
       - name: Build web
-        run: flutter build web --release
+        run: flutter build web --release --base-href /${{ github.event.repository.name }}/
+
       - uses: actions/upload-artifact@v4
         with:
           name: shadow-duel-web
           path: build/web
           retention-days: 14
+
+      # Deploy to Pages only from main; PRs just build.
+      - name: Configure Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        if: github.ref == 'refs/heads/main'
+        uses: actions/deploy-pages@v4
+
+      - name: Show the link in the run summary
+        if: github.ref == 'refs/heads/main'
+        run: |
+          {
+            echo "## Play it"
+            echo ""
+            echo "**${{ steps.deployment.outputs.page_url }}**"
+            echo ""
+            echo "_Desktop browsers have one mouse pointer, so the two-stick skull smash"
+            echo "is unreachable there — open it on a phone, or install the Android build._"
+          } >> "$GITHUB_STEP_SUMMARY"
