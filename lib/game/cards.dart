@@ -68,7 +68,7 @@ class CardDeck {
   void _spend(CardState c) {
     c.cooldown = c.sword.recharge;
     equipped = null;
-    final next = _firstReady();
+    final next = _bestReady();
     if (next != null) equipped = next;
     onSpent?.call(c.sword, next == null ? null : cards[next].sword);
   }
@@ -111,11 +111,18 @@ class CardDeck {
     equipped = null;
   }
 
-  int? _firstReady() {
+  /// The freshest blade worth drawing; a sliver of time is not worth a swap,
+  /// so the fighter goes bare-handed instead of chain-spending cards.
+  static const minAutoDraw = 2.0;
+
+  int? _bestReady() {
+    int? best;
     for (var i = 0; i < cards.length; i++) {
-      if (cards[i].ready) return i;
+      final c = cards[i];
+      if (!c.ready || c.activeLeft < minAutoDraw) continue;
+      if (best == null || c.activeLeft > cards[best].activeLeft) best = i;
     }
-    return null;
+    return best;
   }
 
   void reset() {

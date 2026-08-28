@@ -76,7 +76,10 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
   bool get stunned => stunT > 0;
   double get outgoingMult => rageT > 0 ? 1.6 : 1.0;
 
-  /// Fired when this fighter starts a swing (used for blade wear).
+  /// Counts swings so the opponent can react once per swing, not per frame.
+  int swingId = 0;
+
+  /// Fired when this fighter starts a swing (drives swing sounds).
   void Function(MoveKind kind)? onSwing;
 
   Fighter? opponent;
@@ -182,7 +185,6 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
   void setWeapon(Weapon w) {
     weapon = w;
     moves = buildMoves(w, lib, charKey);
-    guaranteedCrit = false;
   }
 
   /// Adds a damage-over-time effect; a weaker one never overwrites a stronger.
@@ -215,6 +217,7 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     state = FState.attack;
     stateT = 0;
     hitApplied = false;
+    swingId++;
     onSwing?.call(k);
   }
 
@@ -344,7 +347,7 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     // Headshots: certain for the skull smash, likely for head cuts, rare for
     // a sweep that catches the chin.
     var crit = false;
-    var critChance = m.heavy ? 1.0 : (m.zone == Zone.head ? .45 : (m.kind == MoveKind.kick ? .15 : 0.0));
+    var critChance = m.heavy ? .55 : (m.zone == Zone.head ? .45 : (m.kind == MoveKind.kick ? .15 : 0.0));
     if (from.weapon.special == Special.shock) critChance = math.min(1, critChance * 2);
     if (from.guaranteedCrit && !blocked) {
       crit = true;

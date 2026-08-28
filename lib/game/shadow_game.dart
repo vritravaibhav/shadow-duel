@@ -91,6 +91,13 @@ class ShadowGame extends FlameGame {
   late final JoystickComponent joystick;
   late final AttackStick attackStick;
   bool _stickActive = false, _stickFlicked = false;
+
+  /// The skull smash is unblockable, so it rests between uses.
+  static const smashRecharge = 6.0;
+  double smashCd = 0;
+
+  /// A card tapped mid-swing is drawn when the swing finishes.
+  int? _pendingCard;
   late final Announcer announcer;
   late final Hud hud;
   late final GestureTrail trail;
@@ -150,7 +157,8 @@ class ShadowGame extends FlameGame {
     hud = Hud();
     trail = GestureTrail();
     cardBar = CardBar();
-    camera.viewport.addAll([joystick, attackStick, GestureZone(), hud, cardBar, trail, announcer]);
+    camera.viewport.addAll(
+        [joystick, attackStick, GestureZone(), hud, cardBar, GuardMarkers(), trail, announcer]);
     _rebuildDeck();
   }
 
@@ -244,6 +252,8 @@ class ShadowGame extends FlameGame {
     phaseT = 0;
     _fightAnnounced = false;
     _stickActive = false;
+    smashCd = 0;
+    _pendingCard = null;
     announcer.show('STAGE $n', sub: cfg.name, life: 1.0);
     Sfx.play('stage');
     Sfx.music('battle');
@@ -276,6 +286,16 @@ class ShadowGame extends FlameGame {
   /// Tap a card: index -1 is bare hands.
   void equipCard(int index) {
     if (phase != Phase.fighting || !hero.alive) return;
+    // Swapping mid-swing would finish the blow with another blade's effects.
+    if (hero.attacking) {
+      _pendingCard = index;
+      Sfx.play('click', volume: .5);
+      return;
+    }
+    _applyCard(index);
+  }
+
+  void _applyCard(int index) {
     if (index < 0) {
       deck.unequip();
     } else if (!deck.equip(index)) {
@@ -320,6 +340,12 @@ class ShadowGame extends FlameGame {
 
     comboT = math.max(0, comboT - dt);
     if (comboT == 0) combo = 0;
+    smashCd = math.max(0, smashCd - dt);
+    if (_pendingCard != null && !hero.attacking) {
+      final i = _pendingCard!;
+      _pendingCard = null;
+      _applyCard(i);
+    }
 
     phaseT += dt;
     switch (phase) {
@@ -407,7 +433,16 @@ class ShadowGame extends FlameGame {
     if (_stickActive && !_stickFlicked && mag > 0.6) {
       _stickFlicked = true;
       if (d.y < -0.5) {
-        heroAttack(joystick.relativeDelta.y < -0.55 ? MoveKind.heavy : MoveKind.high);
+        final bothUp = joystick.relativeDelta.y < -0.55;
+        if (bothUp && smashCd > 0) {
+          Sfx.play('immune', volume: .35);
+          heroAttack(MoveKind.high);
+        } else if (bothUp) {
+          smashCd = smashRecharge;
+          heroAttack(MoveKind.heavy);
+        } else {
+          heroAttack(MoveKind.high);
+        }
       } else if (d.y > 0.5) {
         heroAttack(MoveKind.kick);
       } else {

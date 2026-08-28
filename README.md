@@ -43,7 +43,7 @@ Armory under its stats:
 | Excalibur | Holy Lance — launching lance of light | Sanctuary — invincible 3s, heal 25 |
 | Dragon Cleaver | Dragon's Breath — fire cone | Draconic Rage — +60% damage, lifesteal 6s |
 
-Art strikes are unblockable and never wear the blade. Each blade keeps its own
+Art strikes are unblockable and cost none of the blade's time. Each blade keeps its own
 V and W timers, and after any art every art locks for 4s, so switching cards
 can't chain a whole deck into one burst. You can't cast while staggered.
 Six villains inflict status effects of their own (Seraph and King Varin bleed,
@@ -91,7 +91,7 @@ times with its stats and both arts.
 Chiptune music (menu / battle) and effects for every swing, hit, block,
 headshot, KO, card, art and screen — see [CREDITS.md](CREDITS.md). Audio is
 silent under `flutter test`.
-
+d
 ## Assets
 
 - `assets/images/packs/<pack>/` — 15 downloaded LuizMelo character packs
@@ -118,7 +118,7 @@ silent under `flutter test`.
 
 - `lib/game/shadow_game.dart` — game core: stages, roster, phases, card deck
   wiring, strike resolution and sword specials
-- `lib/game/cards.dart` — card economy (durability, shatter, recharge, switch)
+- `lib/game/cards.dart` — card economy (active window, spend, recharge, switch)
 - `lib/game/weapons.dart` — the 10 swords, specials, move specs
 - `lib/game/progress.dart` — saved progress (shared_preferences)
 - `lib/game/sprites.dart` — atlas loader (`SpriteLibrary`)

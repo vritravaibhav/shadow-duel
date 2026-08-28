@@ -7,6 +7,7 @@ import 'package:flutter/painting.dart';
 
 import 'arts.dart';
 import 'effects.dart';
+import 'fighter.dart';
 import 'gestures.dart';
 import 'shadow_game.dart';
 
@@ -167,23 +168,37 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
           style: FontStyle.italic);
     }
 
+    // Skull-smash readiness over the right stick.
+    final smashReady = game.smashCd <= 0;
+    final pulse = .7 + .3 * math.sin(game.t * 6);
+    final smashC = Offset(kW - 90, kH - 128);
+    drawText(c, smashReady ? 'SMASH ▲▲' : '${game.smashCd.ceil()}s',
+        smashC,
+        size: smashReady ? 10 : 12,
+        letterSpacing: 2,
+        color: smashReady ? const Color(0xFFFF8B7B) : const Color(0x88FFFFFF),
+        opacity: smashReady ? pulse : 1,
+        glow: smashReady ? 4 : null);
+
     // Controls hint for the first moments of stage 1.
     if (game.stage == 1 && game.phase == Phase.fighting && game.stageT < 14) {
-      drawText(
-        c,
-        'LEFT STICK move   ●   RIGHT STICK flick ▲ head  ▼ feet  ◄► slash, tap strike   ●   BOTH ▲ skull smash   ●   draw V / W in the middle   ●   stand still to guard',
-        const Offset(480, 428),
-        size: 12,
-        letterSpacing: 1.5,
-        color: const Color(0x73FFFFFF),
-        weight: FontWeight.w600,
-      );
+      const hint = [
+        'LEFT STICK move   ●   RIGHT STICK  ▲ head   ▼ feet   ◄► slash   tap strike',
+        'BOTH STICKS ▲ skull smash   ●   draw V / W to cast   ●   stand still to guard',
+      ];
+      for (var i = 0; i < hint.length; i++) {
+        drawText(c, hint[i], Offset(480, 404 + i * 18),
+            size: 12,
+            letterSpacing: 1.2,
+            color: const Color(0x73FFFFFF),
+            weight: FontWeight.w600);
+      }
     }
   }
 }
 
 /// Clash-style sword card bar at the bottom center: bare hands + every owned
-/// sword. Shows durability, recharge, and the equipped card.
+/// sword. Shows the time left on the drawn blade and each card's recharge.
 class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCallbacks {
   CardBar() : super(position: Vector2(0, kH - 96), size: Vector2(kW, 96), priority: 25);
 
@@ -279,8 +294,13 @@ class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCa
             ..color = Color.lerp(const Color(0xFFFF5A5A), const Color(0xFF7DEBFF), frac)!,
         );
         if (equipped) {
-          drawText(canvas, '${card.activeLeft.ceil()}s', Offset(r.right - 10, r.top + 9),
-              size: 9, color: const Color(0xFFFFFFFF), letterSpacing: 0, glow: 3);
+          final t = '${card.activeLeft.ceil()}s';
+          final chip = Rect.fromCenter(
+              center: Offset(r.right - 12, r.top + 10), width: t.length * 6.0 + 8, height: 13);
+          canvas.drawRRect(RRect.fromRectAndRadius(chip, const Radius.circular(4)),
+              Paint()..color = const Color(0xD9101018));
+          drawText(canvas, t, chip.center,
+              size: 9, color: const Color(0xFFFFFFFF), letterSpacing: 0);
         }
         // Recharge overlay.
         if (card.cooldown > 0) {
@@ -294,7 +314,11 @@ class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCa
               size: 16, color: const Color(0xFFFFFFFF), glow: 4);
         }
       }
-      drawText(canvas, card == null ? 'FISTS' : card.sword.name, Offset(r.center.dx, r.bottom + 9),
+      // Cards shrink as the deck grows, so the caption keeps only what fits.
+      final full = card == null ? 'FISTS' : card.sword.name;
+      final maxChars = (cardW / 4.6).floor();
+      final caption = full.length <= maxChars ? full : full.split(' ').first;
+      drawText(canvas, caption, Offset(r.center.dx, r.bottom + 9),
           size: 7.5, letterSpacing: 1, color: Color(equipped ? 0xFFFFD75A : 0x99FFFFFF));
       canvas.restore();
     }
@@ -371,4 +395,63 @@ class AttackStick extends JoystickComponent with TapCallbacks {
 
   @override
   void onTapUp(TapUpEvent event) => onTap();
+}
+
+
+/// Guard read-out: the villain's open zone is ringed in amber (hit there),
+/// the covered zone shows a shield. Drawn above the card bar so it is never
+/// hidden by the deck, and mirrored for the hero's own guard.
+class GuardMarkers extends PositionComponent with HasGameReference<ShadowGame> {
+  GuardMarkers() : super(priority: 45);
+
+  static const _open = Color(0xFFFFC24D);
+  static const _covered = Color(0xFF9FDBFF);
+
+  /// World space is centred on the viewport in this fixed-resolution camera.
+  Offset _screen(Fighter f) =>
+      Offset(f.position.x + kW / 2, f.position.y + kH / 2) -
+      game.camera.viewfinder.position.toOffset();
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    if (game.phase != Phase.fighting) return;
+    final v = game.villain;
+    if (v != null && v.alive) _draw(canvas, v, labelled: true);
+    if (game.hero.alive) _draw(canvas, game.hero, labelled: false);
+  }
+
+  void _draw(Canvas canvas, Fighter f, {required bool labelled}) {
+    if (f.guardZone == GuardZone.none) return;
+    final s = 0.80 + f.zPos / kZMax * 0.32;
+    final feet = _screen(f);
+    final high = f.guardZone == GuardZone.high;
+    final headY = feet.dy - 150 * f.build * s;
+    final footY = feet.dy - 6;
+    final pulse = .65 + .35 * math.sin(game.t * 9);
+
+    void ring(double y, Color col, double alpha) {
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(feet.dx, y), width: 52 * s, height: 13 * s),
+        Paint()
+          ..color = col.withValues(alpha: alpha)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5,
+      );
+    }
+
+    // Shield on what is covered, target ring on what is open.
+    ring(high ? headY : footY, _covered, .5);
+    ring(high ? footY : headY, _open, .85 * pulse);
+    if (!labelled) return;
+    final y = high ? footY + 16 : headY - 16;
+    const text = 'OPEN';
+    final label = high ? '$text ▼' : '$text ▲';
+    final box = Rect.fromCenter(
+        center: Offset(feet.dx, y), width: label.length * 7.5 + 12, height: 16);
+    canvas.drawRRect(RRect.fromRectAndRadius(box, const Radius.circular(6)),
+        Paint()..color = const Color(0xCC101018));
+    drawText(canvas, label, box.center,
+        size: 11, letterSpacing: 2, color: _open, opacity: pulse, glow: 4);
+  }
 }
