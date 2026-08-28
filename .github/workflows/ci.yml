@@ -47,13 +47,73 @@ jobs:
         run: flutter build apk --release
       - name: Build release App Bundle
         run: flutter build appbundle --release
+      - name: Rename for humans
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             "dist/shadow-duel-${{ github.run_number }}.apk"
+          cp build/app/outputs/bundle/release/app-release.aab \
+             "dist/shadow-duel-${{ github.run_number }}.aab"
+          ls -lh dist
+
       - uses: actions/upload-artifact@v4
         with:
           name: shadow-duel-android
-          path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+          path: dist
           retention-days: 14
+
+      - name: Note the APK size in the run summary
+        run: |
+          SIZE=$(du -h "dist/shadow-duel-${{ github.run_number }}.apk" | cut -f1)
+          {
+            echo "## Android"
+            echo ""
+            echo "APK built (\`$SIZE\`), debug-signed for sideloading."
+            echo "Direct download appears under **Publish APK** below once it finishes."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish-apk:
+    name: Publish APK
+    runs-on: ubuntu-latest
+    needs: android
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: shadow-duel-android
+          path: dist
+
+      - name: Publish release with the APK attached
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          body: |
+            Sideload build of Shadow Duel, straight from `main`.
+
+            **On your phone:** tap the `.apk` below, then allow
+            "install unknown apps" for your browser when Android asks.
+
+            Signed with the Flutter debug key — fine for testing, not for the
+            Play Store. The `.aab` is here for when you set up a real keystore.
+
+            Commit: ${{ github.sha }}
+          files: |
+            dist/*.apk
+            dist/*.aab
+
+      - name: Put the download link in the run summary
+        run: |
+          BASE="${{ github.server_url }}/${{ github.repository }}/releases/download/build-${{ github.run_number }}"
+          {
+            echo "## Install on Android"
+            echo ""
+            echo "**[Download shadow-duel-${{ github.run_number }}.apk]($BASE/shadow-duel-${{ github.run_number }}.apk)**"
+            echo ""
+            echo "Open this page on the phone and tap the link."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   ios:
     name: Build iOS (unsigned)
