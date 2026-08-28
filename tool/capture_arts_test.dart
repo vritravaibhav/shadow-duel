@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadow_duel/game/arts.dart';
+import 'package:shadow_duel/game/fighter.dart';
 import 'package:shadow_duel/game/gestures.dart';
 import 'package:shadow_duel/game/shadow_game.dart';
 import 'package:shadow_duel/ui/screens.dart';
@@ -105,6 +106,18 @@ void main() {
     game.castArt(ArtGesture.v);
     await frames(tester, 5);
     await shot(tester, 'art_dragon');
+
+    // Guard read-out: the villain covers high, so the feet are ringed open.
+    game.startStage(2);
+    for (var i = 0; i < 120 && game.phase != Phase.fighting; i++) {
+      await tester.pump(const Duration(milliseconds: 32));
+    }
+    game.hero.wx = -80;
+    game.villain!.wx = 60;
+    game.hero.zPos = game.villain!.zPos = 90;
+    game.villain!.guardZone = GuardZone.high;
+    await frames(tester, 3);
+    await shot(tester, 'guard_open');
 
     game.showArmory();
     await tester.pump(const Duration(milliseconds: 100));

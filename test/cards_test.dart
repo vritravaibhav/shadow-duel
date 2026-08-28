@@ -38,4 +38,24 @@ void main() {
     expect(Swords.unlockedAt(0).map((s) => s.id), ['wakizashi', 'katana']);
     expect(Swords.unlockedAt(16).length, 10);
   });
+
+  test('auto-draw takes the freshest blade, never a sliver, else bare hands', () {
+    final deck = CardDeck(Swords.unlockedAt(2));
+    // Wakizashi almost spent, nodachi fresh: the nodachi is drawn, not slot 0.
+    deck.cards[0].activeLeft = 0.5;
+    deck.equip(1);
+    deck.cards[1].activeLeft = 0.05;
+    deck.update(0.1);
+    expect(deck.weapon.id, 'nodachi');
+
+    // With only slivers left, the fighter goes bare-handed instead of
+    // chain-spending cards.
+    for (final c in deck.cards) {
+      c.activeLeft = 0.5;
+    }
+    deck.equip(2);
+    deck.update(0.6);
+    expect(deck.equipped, isNull);
+    expect(deck.weapon.id, 'fists');
+  });
 }

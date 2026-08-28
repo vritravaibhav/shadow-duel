@@ -43,3 +43,9 @@ Future<void> untilPhase(WidgetTester tester, ShadowGame game, Phase phase, {int 
     await tester.pump(const Duration(milliseconds: 32));
   }
 }
+
+Future<void> untilState(WidgetTester tester, dynamic fighter, dynamic state, {int max = 120}) async {
+  for (var i = 0; i < max && fighter.state != state; i++) {
+    await tester.pump(const Duration(milliseconds: 32));
+  }
+}
