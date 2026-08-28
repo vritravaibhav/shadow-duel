@@ -61,6 +61,11 @@ and interface sounds are from **Kenney's Impact Sounds, RPG Audio and
 Interface Sounds** packs (CC0, https://kenney.nl). License texts sit in
 `assets/audio/`.
 
+## Font — Kenney (CC0)
+
+The UI font is **Kenney Future** / **Kenney Future Narrow** from Kenney's UI
+Pack (CC0, https://kenney.nl), bundled in `assets/fonts/`.
+
 ## Original
 
 The arena backdrop and the bare-hands icon are original to this project.

@@ -43,3 +43,10 @@ flutter:
     - assets/images/vfx/
     - assets/audio/
     - assets/audio/music/
+  fonts:
+    - family: Kenney
+      fonts:
+        - asset: assets/fonts/KenneyFuture.ttf
+    - family: KenneyNarrow
+      fonts:
+        - asset: assets/fonts/KenneyFutureNarrow.ttf

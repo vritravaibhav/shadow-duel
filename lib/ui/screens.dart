@@ -217,10 +217,21 @@ class _MapScreenState extends State<MapScreen> {
                         color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 6),
                   ),
                   const Spacer(),
-                  Text(
-                    'BEST  ${game.progress.highestCleared}',
-                    style: const TextStyle(color: _accent, fontSize: 14, letterSpacing: 3),
-                  ),
+                  Row(children: [
+                    const Icon(Icons.star_rounded, size: 18, color: _accent),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${game.progress.totalStars}',
+                      style: const TextStyle(
+                          fontFamily: 'Kenney', color: _accent, fontSize: 16, letterSpacing: 2),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      'BEST  ${game.progress.highestCleared}',
+                      style: const TextStyle(
+                          fontFamily: 'KenneyNarrow', color: Colors.white60, fontSize: 13, letterSpacing: 2),
+                    ),
+                  ]),
                   const SizedBox(width: 18),
                   KButton(label: 'ARMORY', onTap: game.showArmory, color: 'yellow', width: 140, height: 44),
                 ],
@@ -353,12 +364,28 @@ class _StageRow extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
+                          fontFamily: 'KenneyNarrow',
                           color: unlocked ? Colors.white70 : Colors.white30,
-                          fontSize: 9,
-                          letterSpacing: 2,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 10,
+                          letterSpacing: 1.5,
                         ),
                       ),
+                      if (cleared)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (var i = 0; i < 3; i++)
+                              Icon(
+                                i < game.progress.starsFor(stage)
+                                    ? Icons.star_rounded
+                                    : Icons.star_outline_rounded,
+                                size: 13,
+                                color: i < game.progress.starsFor(stage)
+                                    ? _accent
+                                    : Colors.white24,
+                              ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -420,44 +447,248 @@ class _IconButton extends StatelessWidget {
 
 // ---------------------------------------------------------------------------
 
-class ArmoryScreen extends StatelessWidget {
+class ArmoryScreen extends StatefulWidget {
   const ArmoryScreen({super.key, required this.game});
   final ShadowGame game;
 
   @override
+  State<ArmoryScreen> createState() => _ArmoryScreenState();
+}
+
+class _ArmoryScreenState extends State<ArmoryScreen> {
+  int _selected = 0;
+
+  @override
   Widget build(BuildContext context) {
+    final game = widget.game;
     final highest = game.progress.highestCleared;
+    final sword = Swords.all[_selected];
+    final owned = sword.unlockLevel <= highest;
+    final tint = sword.weapon.trail;
+
     return Material(
-      color: _bg,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-              child: Row(
-                children: [
-                  _IconButton(icon: 'icon_return', onTap: game.showMap),
-                  const SizedBox(width: 14),
-                  const Text(
-                    'ARMORY',
-                    style: TextStyle(
-                        color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 6),
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // The arena itself, pushed back behind the rack.
+          Image.asset('assets/images/arena.png', fit: BoxFit.cover),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xF20A0812), Color(0xE6140F22), Color(0xF20A0812)],
+              ),
+            ),
+          ),
+          // A wash of the selected blade's colour.
+          IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0.35, 0.1),
+                  radius: 1.1,
+                  colors: [tint.withValues(alpha: owned ? .22 : .06), Colors.transparent],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                _ArmoryHeader(game: game, highest: highest),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // The rack.
+                      SizedBox(
+                        width: 300,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(14, 4, 8, 16),
+                          itemCount: Swords.all.length,
+                          itemBuilder: (context, i) => _RackSlot(
+                            sword: Swords.all[i],
+                            index: i,
+                            owned: Swords.all[i].unlockLevel <= highest,
+                            selected: i == _selected,
+                            onTap: () {
+                              Sfx.play('card', volume: .7);
+                              setState(() => _selected = i);
+                            },
+                          ),
+                        ),
+                      ),
+                      // The blade under the light.
+                      Expanded(
+                        child: _BladeDetail(sword: sword, owned: owned),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ArmoryHeader extends StatelessWidget {
+  const _ArmoryHeader({required this.game, required this.highest});
+  final ShadowGame game;
+  final int highest;
+
+  @override
+  Widget build(BuildContext context) {
+    final owned = Swords.unlockedAt(highest).length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 18, 8),
+      child: Row(
+        children: [
+          _GlyphButton(icon: 'icon_return', onTap: game.showMap),
+          const SizedBox(width: 14),
+          const Text(
+            'ARMORY',
+            style: TextStyle(
+              fontFamily: 'Kenney',
+              color: Colors.white,
+              fontSize: 26,
+              letterSpacing: 4,
+              shadows: [Shadow(color: Color(0xFF7DEBFF), blurRadius: 18)],
+            ),
+          ),
+          const Spacer(),
+          _Counter(icon: Icons.star_rounded, value: '${game.progress.totalStars}', tint: _accent),
+          const SizedBox(width: 14),
+          _Counter(
+              icon: Icons.shield_moon_outlined,
+              value: '$owned/${Swords.all.length}',
+              tint: const Color(0xFF7DEBFF)),
+        ],
+      ),
+    );
+  }
+}
+
+class _Counter extends StatelessWidget {
+  const _Counter({required this.icon, required this.value, required this.tint});
+  final IconData icon;
+  final String value;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0x66000000),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: tint.withValues(alpha: .5)),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 16, color: tint),
+        const SizedBox(width: 6),
+        Text(value,
+            style: TextStyle(
+                fontFamily: 'Kenney', color: tint, fontSize: 14, letterSpacing: 1.5)),
+      ]),
+    );
+  }
+}
+
+/// One blade in the rack down the left-hand side.
+class _RackSlot extends StatelessWidget {
+  const _RackSlot({
+    required this.sword,
+    required this.index,
+    required this.owned,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Sword sword;
+  final int index;
+  final bool owned, selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tint = sword.weapon.trail;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            selected ? tint.withValues(alpha: .28) : const Color(0x33141024),
+            const Color(0x11000000),
+          ]),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+              color: selected ? tint.withValues(alpha: .6) : Colors.white10),
+        ),
+        child: Row(
+          children: [
+            // Blade-coloured spine down the left edge.
+            Container(
+              width: 4,
+              height: 40,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: selected ? tint : tint.withValues(alpha: owned ? .35 : .12),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Opacity(
+                    opacity: owned ? 1 : .3,
+                    child: Image.asset('assets/images/swords/${sword.icon}.png',
+                        filterQuality: FilterQuality.none),
+                  ),
+                  if (!owned)
+                    Image.asset('assets/images/ui/icon_locked.png', width: 18, color: Colors.white70),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    '${Swords.unlockedAt(highest).length} / ${Swords.all.length} BLADES',
-                    style: const TextStyle(color: _accent, fontSize: 13, letterSpacing: 3),
+                    sword.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: 'Kenney',
+                      fontSize: 13,
+                      letterSpacing: 1.5,
+                      color: owned ? Colors.white : Colors.white38,
+                    ),
+                  ),
+                  Text(
+                    owned ? 'MK ${index + 1}' : 'STAGE ${sword.unlockLevel}',
+                    style: TextStyle(
+                        fontFamily: 'KenneyNarrow',
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        color: owned ? tint : Colors.white30),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                itemCount: Swords.all.length,
-                itemBuilder: (context, i) => _SwordRow(sword: Swords.all[i], highest: highest),
-              ),
-            ),
+            if (selected)
+              Icon(Icons.chevron_right_rounded, color: tint, size: 20),
           ],
         ),
       ),
@@ -465,92 +696,178 @@ class ArmoryScreen extends StatelessWidget {
   }
 }
 
-class _SwordRow extends StatelessWidget {
-  const _SwordRow({required this.sword, required this.highest});
+/// The selected blade, lit like a display case.
+class _BladeDetail extends StatelessWidget {
+  const _BladeDetail({required this.sword, required this.owned});
   final Sword sword;
-  final int highest;
+  final bool owned;
 
   @override
   Widget build(BuildContext context) {
     final w = sword.weapon;
-    final owned = sword.unlockLevel <= highest;
     final tint = w.trail;
-    Widget chip(String label) => Container(
-          margin: const EdgeInsets.only(right: 6, top: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.white10,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 10, letterSpacing: 1.5)),
-        );
-    return Opacity(
-      opacity: owned ? 1 : .55,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF15121F),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: owned ? tint.withValues(alpha: .7) : Colors.white12, width: 1.5),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: _ink,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: owned ? [BoxShadow(color: tint.withValues(alpha: .35), blurRadius: 16)] : null,
+    final (artV, artW) = Arts.of(sword.id);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(10, 0, 20, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Blade on its pedestal.
+              Container(
+                width: 108,
+                height: 108,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(colors: [
+                    tint.withValues(alpha: owned ? .35 : .1),
+                    Colors.transparent,
+                  ]),
+                  border: Border.all(color: tint.withValues(alpha: owned ? .8 : .25), width: 2),
+                ),
+                padding: const EdgeInsets.all(18),
+                child: Opacity(
+                  opacity: owned ? 1 : .35,
+                  child: Image.asset('assets/images/swords/${sword.icon}.png',
+                      filterQuality: FilterQuality.none),
+                ),
               ),
-              padding: const EdgeInsets.all(8),
-              child: Image.asset('assets/images/swords/${sword.icon}.png', filterQuality: FilterQuality.none),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(sword.name,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 3)),
-                      const Spacer(),
-                      Text(
-                        owned ? 'OWNED' : 'CLEAR STAGE ${sword.unlockLevel}',
-                        style: TextStyle(
-                            color: owned ? _accent : Colors.white54, fontSize: 11, letterSpacing: 2),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      sword.name,
+                      style: TextStyle(
+                        fontFamily: 'Kenney',
+                        fontSize: 30,
+                        letterSpacing: 3,
+                        color: Colors.white,
+                        shadows: [Shadow(color: tint, blurRadius: 20)],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${w.special?.title.toUpperCase()}  —  ${w.special?.description}',
-                    style: TextStyle(color: tint, fontSize: 12),
-                  ),
-                  Wrap(
-                    children: [
-                      chip('STRENGTH ×${w.strength.toStringAsFixed(2)}'),
-                      chip('POWER ×${w.power.toStringAsFixed(1)}'),
-                      chip('SPEED ×${w.speed.toStringAsFixed(2)}'),
-                      chip('ACTIVE ${sword.active.toStringAsFixed(0)}s'),
-                      chip('RECHARGE ${sword.recharge.toStringAsFixed(0)}s'),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _ArtLine(art: Arts.of(sword.id).$1, tint: tint),
-                  const SizedBox(height: 4),
-                  _ArtLine(art: Arts.of(sword.id).$2, tint: tint),
-                ],
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: owned ? tint.withValues(alpha: .18) : Colors.white10,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: owned ? tint : Colors.white24),
+                      ),
+                      child: Text(
+                        owned ? 'IN YOUR DECK' : 'LOCKED  ·  CLEAR STAGE ${sword.unlockLevel}',
+                        style: TextStyle(
+                            fontFamily: 'KenneyNarrow',
+                            fontSize: 11,
+                            letterSpacing: 2,
+                            color: owned ? tint : Colors.white54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          _StatBar(label: 'STRENGTH', value: w.strength, max: 2.0, tint: tint),
+          _StatBar(label: 'POWER', value: w.power, max: 2.4, tint: tint),
+          _StatBar(label: 'SPEED', value: w.speed, max: 1.4, tint: tint),
+          _StatBar(label: 'REACH', value: w.range.toDouble(), max: 50, tint: tint),
+          const SizedBox(height: 12),
+          Row(children: [
+            _TimeChip(label: 'ACTIVE', seconds: sword.active, tint: const Color(0xFF6CF0A0)),
+            const SizedBox(width: 10),
+            _TimeChip(label: 'RECHARGE', seconds: sword.recharge, tint: const Color(0xFFFF8B7B)),
+          ]),
+          const SizedBox(height: 18),
+          Text('SWORD ARTS',
+              style: TextStyle(
+                  fontFamily: 'Kenney', fontSize: 13, letterSpacing: 3, color: tint)),
+          const SizedBox(height: 8),
+          _ArtLine(art: artV, tint: tint),
+          const SizedBox(height: 8),
+          _ArtLine(art: artW, tint: tint),
+        ],
+      ),
+    );
+  }
+}
+
+/// A segmented stat meter — pips, not a progress bar.
+class _StatBar extends StatelessWidget {
+  const _StatBar({required this.label, required this.value, required this.max, required this.tint});
+  final String label;
+  final double value, max;
+  final Color tint;
+
+  static const _pips = 12;
+
+  @override
+  Widget build(BuildContext context) {
+    final filled = (value / max * _pips).clamp(0, _pips).round();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 92,
+            child: Text(label,
+                style: const TextStyle(
+                    fontFamily: 'KenneyNarrow',
+                    fontSize: 11,
+                    letterSpacing: 1.6,
+                    color: Colors.white60)),
+          ),
+          for (var i = 0; i < _pips; i++)
+            Container(
+              width: 12,
+              height: 12,
+              margin: const EdgeInsets.only(right: 3),
+              decoration: BoxDecoration(
+                color: i < filled ? tint.withValues(alpha: .85) : Colors.white10,
+                borderRadius: BorderRadius.circular(2),
+                boxShadow: i < filled
+                    ? [BoxShadow(color: tint.withValues(alpha: .5), blurRadius: 6)]
+                    : null,
               ),
             ),
-          ],
-        ),
+          const SizedBox(width: 8),
+          Text(
+            max > 10 ? value.toStringAsFixed(0) : '\u00d7${value.toStringAsFixed(2)}',
+            style: const TextStyle(
+                fontFamily: 'KenneyNarrow', fontSize: 11, color: Colors.white54),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _TimeChip extends StatelessWidget {
+  const _TimeChip({required this.label, required this.seconds, required this.tint});
+  final String label;
+  final double seconds;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0x33000000),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: tint.withValues(alpha: .55)),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Text('$label ',
+            style: const TextStyle(
+                fontFamily: 'KenneyNarrow', fontSize: 11, letterSpacing: 1.5, color: Colors.white54)),
+        Text('${seconds.toStringAsFixed(0)}s',
+            style: TextStyle(fontFamily: 'Kenney', fontSize: 15, color: tint)),
+      ]),
     );
   }
 }
@@ -563,42 +880,143 @@ class _ArtLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: tint, width: 1.5),
-            boxShadow: [BoxShadow(color: tint.withValues(alpha: .35), blurRadius: 8)],
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0x33000000),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: tint.withValues(alpha: .35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 3,
+            height: 40,
+            margin: const EdgeInsets.only(right: 9),
+            decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(2)),
           ),
-          child: Text(art.glyph,
-              style: TextStyle(color: tint, fontSize: 12, fontWeight: FontWeight.w900, height: 1)),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.35),
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: tint, width: 2),
+              boxShadow: [BoxShadow(color: tint.withValues(alpha: .45), blurRadius: 10)],
+            ),
+            child: Text(art.glyph,
+                style: TextStyle(
+                    fontFamily: 'Kenney', color: tint, fontSize: 16, height: 1)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextSpan(
-                    text: 'DRAW ${art.glyph}  ',
-                    style: TextStyle(color: tint, fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.w700)),
-                TextSpan(
-                    text: art.name,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                TextSpan(text: '  —  ${art.description}'),
-                TextSpan(
-                    text: '   ${art.cooldown.toStringAsFixed(0)}s',
-                    style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                Row(children: [
+                  Expanded(
+                    child: Text(art.name.toUpperCase(),
+                        style: const TextStyle(
+                            fontFamily: 'Kenney',
+                            fontSize: 14,
+                            letterSpacing: 2,
+                            color: Colors.white)),
+                  ),
+                  Text('${art.cooldown.toStringAsFixed(0)}s',
+                      style: const TextStyle(
+                          fontFamily: 'KenneyNarrow', fontSize: 11, color: Colors.white38)),
+                ]),
+                const SizedBox(height: 2),
+                Text(art.description,
+                    style: const TextStyle(fontSize: 12, height: 1.3, color: Colors.white70)),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A round icon button used across the game screens.
+class _GlyphButton extends StatelessWidget {
+  const _GlyphButton({required this.icon, required this.onTap});
+  final String icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Sfx.play('click', volume: .6);
+        onTap();
+      },
+      child: Container(
+        width: 42,
+        height: 42,
+        padding: const EdgeInsets.all(9),
+        decoration: BoxDecoration(
+          color: const Color(0x66000000),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white24),
         ),
-      ],
+        child: Image.asset('assets/images/ui/$icon.png'),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+
+/// Battle paused: resume, or bail out to the map.
+class PauseScreen extends StatelessWidget {
+  const PauseScreen({super.key, required this.game});
+  final ShadowGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    final cfg = game.stageCfg(game.stage);
+    return Container(
+      color: const Color(0xCC05040A),
+      alignment: Alignment.center,
+      child: Container(
+        width: 420,
+        padding: const EdgeInsets.fromLTRB(26, 22, 26, 22),
+        decoration: BoxDecoration(
+          color: const Color(0xF2100D1A),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFF7DEBFF), width: 2),
+          boxShadow: const [BoxShadow(color: Color(0x667DEBFF), blurRadius: 30)],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('PAUSED',
+                style: TextStyle(
+                  fontFamily: 'Kenney',
+                  fontSize: 34,
+                  letterSpacing: 8,
+                  color: Colors.white,
+                  shadows: [Shadow(color: Color(0xFF7DEBFF), blurRadius: 18)],
+                )),
+            const SizedBox(height: 4),
+            Text('STAGE ${game.stage}  ·  ${cfg.name}',
+                style: const TextStyle(
+                    fontFamily: 'KenneyNarrow',
+                    fontSize: 12,
+                    letterSpacing: 3,
+                    color: Colors.white54)),
+            const SizedBox(height: 20),
+            KButton(label: 'RESUME', onTap: game.resumeFight, color: 'blue', width: 230),
+            const SizedBox(height: 10),
+            KButton(label: 'QUIT TO MAP', onTap: game.quitToMap, color: 'grey', width: 230),
+            const SizedBox(height: 10),
+            const Text('quitting forfeits this stage',
+                style: TextStyle(fontSize: 11, color: Colors.white38)),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -639,8 +1057,48 @@ class ResultScreen extends StatelessWidget {
             ),
             Text(
               'STAGE ${game.stage}  ·  ${cfg.name}',
-              style: const TextStyle(color: Colors.white70, fontSize: 13, letterSpacing: 3),
+              style: const TextStyle(
+                  fontFamily: 'KenneyNarrow', color: Colors.white70, fontSize: 13, letterSpacing: 3),
             ),
+            if (win) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < 3; i++)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: Icon(
+                        i < game.lastStars ? Icons.star_rounded : Icons.star_outline_rounded,
+                        size: i < game.lastStars ? 44 : 36,
+                        color: i < game.lastStars ? _accent : Colors.white24,
+                        shadows: i < game.lastStars
+                            ? const [Shadow(color: _accent, blurRadius: 18)]
+                            : null,
+                      ),
+                    ),
+                ],
+              ),
+              if (game.lastNewStars)
+                const Text('NEW BEST',
+                    style: TextStyle(
+                        fontFamily: 'Kenney', color: _accent, fontSize: 12, letterSpacing: 4)),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _ScoreCell(
+                      label: 'HEALTH LEFT',
+                      value: '${(game.lastHpFrac * 100).round()}%',
+                      hit: game.lastHpFrac >= .5),
+                  const SizedBox(width: 14),
+                  _ScoreCell(
+                      label: 'BEST COMBO',
+                      value: '${game.stageMaxCombo}',
+                      hit: game.stageMaxCombo >= 8),
+                ],
+              ),
+            ],
             if (unlocked != null) ...[
               const SizedBox(height: 18),
               const Text('NEW BLADE CLAIMED',
@@ -695,6 +1153,33 @@ class ResultScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+
+/// One number on the victory card — lit when it earned you a star.
+class _ScoreCell extends StatelessWidget {
+  const _ScoreCell({required this.label, required this.value, required this.hit});
+  final String label, value;
+  final bool hit;
+
+  @override
+  Widget build(BuildContext context) {
+    final tint = hit ? _accent : Colors.white38;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0x33000000),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: tint.withValues(alpha: .5)),
+      ),
+      child: Column(children: [
+        Text(value, style: TextStyle(fontFamily: 'Kenney', fontSize: 20, color: tint)),
+        Text(label,
+            style: const TextStyle(
+                fontFamily: 'KenneyNarrow', fontSize: 10, letterSpacing: 1.5, color: Colors.white54)),
+      ]),
     );
   }
 }

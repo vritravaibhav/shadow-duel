@@ -40,6 +40,7 @@ class _ShadowDuelAppState extends State<ShadowDuelApp> {
             ShadowGame.overlayMap: (context, g) => MapScreen(game: g),
             ShadowGame.overlayArmory: (context, g) => ArmoryScreen(game: g),
             ShadowGame.overlayResult: (context, g) => ResultScreen(game: g),
+            ShadowGame.overlayPause: (context, g) => PauseScreen(game: g),
           },
           initialActiveOverlays: const [ShadowGame.overlayTitle],
         ),

@@ -168,6 +168,23 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
           style: FontStyle.italic);
     }
 
+    // Danger vignette when the hero is nearly out.
+    final hpFrac = (game.hero.hp / game.hero.maxHp).clamp(0.0, 1.0);
+    if (hpFrac < .25 && game.hero.alive) {
+      final beat = .35 + .35 * math.sin(game.t * (6 + (1 - hpFrac) * 8));
+      final strength = (1 - hpFrac / .25) * beat;
+      c.drawRect(
+        const Rect.fromLTWH(0, 0, kW, kH),
+        Paint()
+          ..shader = ui.Gradient.radial(
+            const Offset(kW / 2, kH / 2),
+            kW * .62,
+            [const Color(0x00FF2B2B), const Color(0xFFFF2B2B).withValues(alpha: .5 * strength)],
+            const [0.55, 1.0],
+          ),
+      );
+    }
+
     // Skull-smash readiness over the right stick.
     final smashReady = game.smashCd <= 0;
     final pulse = .7 + .3 * math.sin(game.t * 6);
@@ -453,5 +470,50 @@ class GuardMarkers extends PositionComponent with HasGameReference<ShadowGame> {
         Paint()..color = const Color(0xCC101018));
     drawText(canvas, label, box.center,
         size: 11, letterSpacing: 2, color: _open, opacity: pulse, glow: 4);
+  }
+}
+
+
+/// The pause button: freezes the battle and opens the quit-to-map menu.
+class PauseButton extends PositionComponent with HasGameReference<ShadowGame>, TapCallbacks {
+  PauseButton() : super(position: Vector2(kW / 2 - 22, 74), size: Vector2(44, 30), priority: 26);
+
+  double _pop = 0;
+
+  @override
+  bool containsLocalPoint(Vector2 point) =>
+      game.phase == Phase.fighting && !game.battlePaused && super.containsLocalPoint(point);
+
+  @override
+  void onTapDown(TapDownEvent event) => _pop = 1;
+
+  @override
+  void onTapUp(TapUpEvent event) => game.pauseFight();
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _pop = math.max(0, _pop - 5 * dt);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    if (game.phase != Phase.fighting) return;
+    final r = RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.x, size.y), const Radius.circular(8));
+    canvas.drawRRect(r, Paint()..color = Color.lerp(const Color(0xB3101018), const Color(0xFF2B3350), _pop)!);
+    canvas.drawRRect(
+      r,
+      Paint()
+        ..color = const Color(0x66FFFFFF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4,
+    );
+    final bar = Paint()..color = const Color(0xE6FFFFFF);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromLTWH(size.x / 2 - 7, 9, 4.5, 12), const Radius.circular(2)), bar);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromLTWH(size.x / 2 + 2.5, 9, 4.5, 12), const Radius.circular(2)), bar);
   }
 }

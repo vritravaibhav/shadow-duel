@@ -48,6 +48,7 @@ void main() {
                 ShadowGame.overlayMap: (context, g) => MapScreen(game: g),
                 ShadowGame.overlayArmory: (context, g) => ArmoryScreen(game: g),
                 ShadowGame.overlayResult: (context, g) => ResultScreen(game: g),
+                ShadowGame.overlayPause: (context, g) => PauseScreen(game: g),
               },
             ),
           ),
@@ -119,9 +120,20 @@ void main() {
     await frames(tester, 3);
     await shot(tester, 'guard_open');
 
+    // Pause menu over a live battle.
+    game.startStage(4);
+    for (var i = 0; i < 120 && game.phase != Phase.fighting; i++) {
+      await tester.pump(const Duration(milliseconds: 32));
+    }
+    game.pauseFight();
+    await tester.pump(const Duration(milliseconds: 60));
+    await tester.pump(const Duration(milliseconds: 60));
+    await shot(tester, 'pause_menu');
+    game.resumeFight();
+
     game.showArmory();
     await tester.pump(const Duration(milliseconds: 100));
-    await shot(tester, 'armory_arts');
+    await shot(tester, 'armory_game');
     game.pauseEngine();
   });
 }

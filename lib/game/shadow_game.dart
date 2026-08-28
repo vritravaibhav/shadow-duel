@@ -65,6 +65,7 @@ class ShadowGame extends FlameGame {
   static const overlayMap = 'map';
   static const overlayArmory = 'armory';
   static const overlayResult = 'result';
+  static const overlayPause = 'pause';
 
   /// Villain roster; the infinite map cycles through it with rising tiers.
   static const roster = [
@@ -118,6 +119,15 @@ class ShadowGame extends FlameGame {
   double comboT = 0;
   bool lastWin = false;
   Sword? lastUnlocked;
+
+  /// Battle frozen by the pause button (world frozen, HUD still drawn).
+  bool battlePaused = false;
+
+  /// Chase-the-stars scoring, recomputed each stage.
+  int stageMaxCombo = 0;
+  int lastStars = 0;
+  bool lastNewStars = false, lastNewCombo = false;
+  double lastHpFrac = 0;
   final _rng = math.Random();
   bool _fightAnnounced = false;
 
@@ -157,8 +167,17 @@ class ShadowGame extends FlameGame {
     hud = Hud();
     trail = GestureTrail();
     cardBar = CardBar();
-    camera.viewport.addAll(
-        [joystick, attackStick, GestureZone(), hud, cardBar, GuardMarkers(), trail, announcer]);
+    camera.viewport.addAll([
+      joystick,
+      attackStick,
+      GestureZone(),
+      hud,
+      cardBar,
+      GuardMarkers(),
+      PauseButton(),
+      trail,
+      announcer,
+    ]);
     _rebuildDeck();
   }
 
@@ -254,6 +273,9 @@ class ShadowGame extends FlameGame {
     _stickActive = false;
     smashCd = 0;
     _pendingCard = null;
+    battlePaused = false;
+    stageMaxCombo = 0;
+    overlays.remove(overlayPause);
     announcer.show('STAGE $n', sub: cfg.name, life: 1.0);
     Sfx.play('stage');
     Sfx.music('battle');
@@ -264,9 +286,50 @@ class ShadowGame extends FlameGame {
 
   void showMap() {
     overlays.clear();
+    battlePaused = false;
     phase = Phase.menu;
     overlays.add(overlayMap);
     Sfx.music('menu');
+  }
+
+  /// Freeze the fight and raise the pause menu.
+  void pauseFight() {
+    if (phase != Phase.fighting || battlePaused) return;
+    battlePaused = true;
+    timeDilation = 0; // freeze immediately, not on the next frame
+    Sfx.play('click', volume: .6);
+    overlays.add(overlayPause);
+  }
+
+  void resumeFight() {
+    if (!battlePaused) return;
+    battlePaused = false;
+    overlays.remove(overlayPause);
+    Sfx.play('click', volume: .6);
+  }
+
+  /// Leave the battle and go back to the map. The stage is not cleared.
+  void quitToMap() {
+    battlePaused = false;
+    villain?.removeFromParent();
+    villain = null;
+    hero.resetFor(-180, 78, 1);
+    showMap();
+  }
+
+  /// Three stars: win, keep at least half your health, and land an 8-hit combo.
+  int _starsEarned() {
+    var n = 1;
+    if (hero.hp / hero.maxHp >= .5) n++;
+    if (stageMaxCombo >= 8) n++;
+    return n;
+  }
+
+  void _score() {
+    lastHpFrac = (hero.hp / hero.maxHp).clamp(0.0, 1.0);
+    lastStars = _starsEarned();
+    progress.clearStage(stage, lastStars).then((better) => lastNewStars = better);
+    progress.recordCombo(stageMaxCombo).then((best) => lastNewCombo = best);
   }
 
   void showArmory() {
@@ -312,7 +375,16 @@ class ShadowGame extends FlameGame {
     super.update(dt);
     t += dt;
     _hitStop = math.max(0, _hitStop - dt);
-    timeDilation = _hitStop > 0 ? 0.12 : 1.0;
+    if (battlePaused) {
+      timeDilation = 0;
+      return;
+    }
+    // Time thickens when either fighter is one hit from going down.
+    final desperate = phase == Phase.fighting &&
+        hero.alive &&
+        (villain?.alive ?? false) &&
+        (hero.hp / hero.maxHp < .2 || (villain!.hp / villain!.maxHp) < .12);
+    timeDilation = _hitStop > 0 ? 0.12 : (desperate ? 0.86 : 1.0);
 
     if (_shakeT > 0) {
       _shakeT = math.max(0, _shakeT - dt);
@@ -400,7 +472,7 @@ class ShadowGame extends FlameGame {
         if (phaseT >= 2.6) {
           lastWin = true;
           lastUnlocked = swordUnlockedByStage(stage);
-          progress.clearStage(stage);
+          _score();
           phase = Phase.menu;
           overlays.add(overlayResult);
           Sfx.play('win');
@@ -412,6 +484,10 @@ class ShadowGame extends FlameGame {
         if (phaseT >= 2.2) {
           lastWin = false;
           lastUnlocked = null;
+          lastStars = 0;
+          lastNewStars = false;
+          lastHpFrac = 0;
+          lastNewCombo = false;
           phase = Phase.menu;
           overlays.add(overlayResult);
           Sfx.play('lose');
@@ -749,6 +825,7 @@ class ShadowGame extends FlameGame {
     if (from == hero && !blocked) {
       combo++;
       comboT = 1.5;
+      if (combo > stageMaxCombo) stageMaxCombo = combo;
     }
     if (killed) {
       Sfx.play('ko');

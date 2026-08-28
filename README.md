@@ -92,6 +92,50 @@ Chiptune music (menu / battle) and effects for every swing, hit, block,
 headshot, KO, card, art and screen — see [CREDITS.md](CREDITS.md). Audio is
 silent under `flutter test`.
 d
+## Pausing and the star chase
+
+Tap the **pause button** at the top of the battle screen to freeze the fight;
+from there you can **resume** or **quit to the map** (quitting forfeits the
+stage — it is not counted as cleared). Time also thickens slightly whenever
+either fighter is one hit from going down.
+
+Every cleared stage is scored out of **three stars**, shown on the map node
+and on the victory card:
+
+| Star | Earned by |
+| --- | --- |
+| ★ | clearing the stage |
+| ★★ | finishing with at least half your health |
+| ★★★ | landing an 8-hit combo |
+
+Stars, your best combo and your furthest stage are saved on the device, so a
+one-star clear is worth going back for.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and pull request to `main`:
+
+| Job | What it does |
+| --- | --- |
+| Analyze & test | `flutter analyze` + `flutter test` |
+| Build Android | release APK **and** App Bundle, uploaded as artifacts |
+| Build iOS | `flutter build ios --release --no-codesign`, `.app` uploaded |
+| Build web | release web bundle (see caveat) |
+
+**Android is the target to play on.** The web build is included for
+convenience, but this game is designed around two thumbs on a touchscreen:
+
+- On **desktop web** a mouse is a single pointer, so you cannot hold the left
+  stick and flick the right one at the same time — the both-sticks **skull
+  smash** is unreachable, and moving while attacking is not possible.
+- Browsers block audio until the first user gesture, so music and hit sounds
+  start late.
+- The first load ships every sprite sheet, VFX strip and audio file, and the
+  additive blends the effects rely on are slower under CanvasKit.
+
+Mobile web works (multi-touch), but Android gets correct audio, full
+performance and both sticks.
+
 ## Assets
 
 - `assets/images/packs/<pack>/` — 15 downloaded LuizMelo character packs
@@ -120,12 +164,14 @@ d
   wiring, strike resolution and sword specials
 - `lib/game/cards.dart` — card economy (active window, spend, recharge, switch)
 - `lib/game/weapons.dart` — the 10 swords, specials, move specs
-- `lib/game/progress.dart` — saved progress (shared_preferences)
+- `lib/game/progress.dart` — saved progress: furthest stage, per-stage stars,
+  best combo (shared_preferences)
 - `lib/game/sprites.dart` — atlas loader (`SpriteLibrary`)
 - `lib/game/fighter.dart` — sprite-sheet fighter, combat state machine,
   status effects (bleed/burn/poison/freeze/shock)
 - `lib/game/villain.dart` — villain AI
 - `lib/game/hud.dart` — health bars, portraits, combo, card bar, gesture zone
-- `lib/ui/screens.dart` — title, endless map, armory, result screens
+- `lib/ui/screens.dart` — title, endless map, armory (blade rack + display
+  case), pause menu, result screens
 - `tool/` — asset pipeline (pack importer, arena/icon baker); not compiled
   into the app
