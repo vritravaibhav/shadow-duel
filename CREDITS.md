@@ -50,6 +50,17 @@ Dark Spell Effect). Their terms: "You can use and modify this asset for
 personal and commercial purpose. Credit is not required but would be
 appreciated." Files live in `assets/images/vfx/`.
 
+## Sound — Juhani Junkala (CC0) and Kenney (CC0)
+
+Music is from **Juhani Junkala's "5 Action Chiptunes"** (Retro Game Music
+Pack, CC0, https://opengameart.org/content/5-chiptunes-action). Retro sound
+effects (casts, hits, KO, fanfares) are from **Juhani Junkala's "The Essential
+Retro Video Game Sound Effects Collection"** (512 sounds, CC0,
+https://opengameart.org/content/512-sound-effects-8-bit-style). Impact, sword
+and interface sounds are from **Kenney's Impact Sounds, RPG Audio and
+Interface Sounds** packs (CC0, https://kenney.nl). License texts sit in
+`assets/audio/`.
+
 ## Original
 
 The arena backdrop and the bare-hands icon are original to this project.

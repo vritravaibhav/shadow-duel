@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 
 import 'effects.dart';
+import 'gestures.dart';
 import 'shadow_game.dart';
 
 class _Spark {
@@ -22,68 +23,55 @@ class _Flash {
   double t = 0;
 }
 
-/// The sword-stroke trail that follows the finger on the right half of the
-/// screen, plus the glyph flash when a drawn V / W fires a sword art.
+/// The effect shown when a drawn glyph is read: a clean V or W emblem bursts
+/// where the stroke was, with the art's name. The finger path itself is
+/// never drawn.
 class GestureTrail extends PositionComponent with HasGameReference<ShadowGame> {
   GestureTrail() : super(priority: 40);
 
-  static const trailLife = 0.32;
-  final List<(Offset, double)> _trail = [];
   final List<_Spark> _sparks = [];
   final List<_Flash> _flashes = [];
   final _rng = math.Random();
-  bool _down = false;
-  double _released = 0;
 
   Color get _color => game.hero.weapon.trail.withValues(alpha: 1);
 
-  void begin(Offset p) {
-    _down = true;
-    _trail
-      ..clear()
-      ..add((p, game.t));
-  }
-
-  void extend(Offset p) {
-    if (!_down) return;
-    if (_trail.isNotEmpty && (p - _trail.last.$1).distance < 3) return;
-    _trail.add((p, game.t));
-    for (var i = 0; i < 2; i++) {
-      final a = _rng.nextDouble() * math.pi * 2;
-      _sparks.add(_Spark(
-        p,
-        Offset(math.cos(a), math.sin(a)) * (40 + _rng.nextDouble() * 90),
-        .25 + _rng.nextDouble() * .2,
-        _rng.nextBool() ? _color : const Color(0xFFFFFFFF),
-      ));
-    }
-  }
-
-  void end() {
-    _down = false;
-    _released = game.t;
-  }
-
-  /// Re-draw the recognised glyph as a bright stroke with a label.
-  void flash(List<Offset> points, {required String label, required bool ok}) {
-    _flashes.add(_Flash(List.of(points), ok ? _color : const Color(0xFFB0B4C8), label, ok));
-    if (ok) {
-      for (final p in points) {
-        for (var i = 0; i < 3; i++) {
-          final a = _rng.nextDouble() * math.pi * 2;
-          _sparks.add(_Spark(p, Offset(math.cos(a), math.sin(a)) * (80 + _rng.nextDouble() * 160),
-              .35 + _rng.nextDouble() * .25, i == 0 ? const Color(0xFFFFFFFF) : _color));
-        }
+  /// Show the emblem for [kind] inside [box] (the stroke's bounds).
+  void flash(GestureKind kind, Rect box, {required String label, required bool ok}) {
+    final r = _fit(box);
+    final pts = kind == GestureKind.glyphW
+        ? [
+            r.topLeft,
+            Offset(r.left + r.width * .25, r.bottom),
+            Offset(r.center.dx, r.top + r.height * .38),
+            Offset(r.right - r.width * .25, r.bottom),
+            r.topRight,
+          ]
+        : [r.topLeft, Offset(r.center.dx, r.bottom), r.topRight];
+    final col = ok ? _color : const Color(0xFFB0B4C8);
+    _flashes.add(_Flash(pts, col, label, ok));
+    if (!ok) return;
+    for (var i = 0; i < pts.length - 1; i++) {
+      for (var k = 0; k < 10; k++) {
+        final p = pts[i] + (pts[i + 1] - pts[i]) * (k / 10);
+        final a = _rng.nextDouble() * math.pi * 2;
+        _sparks.add(_Spark(p, Offset(math.cos(a), math.sin(a)) * (80 + _rng.nextDouble() * 180),
+            .35 + _rng.nextDouble() * .3, k.isEven ? const Color(0xFFFFFFFF) : col));
       }
     }
+  }
+
+  /// A tidy emblem box: at least 90 px tall, kept clear of the top HUD.
+  Rect _fit(Rect box) {
+    final h = math.max(90.0, math.min(220.0, box.height));
+    final w = math.max(h * .9, math.min(260.0, box.width));
+    final cx = box.center.dx.clamp(w / 2 + 12, kW - w / 2 - 12);
+    final cy = box.center.dy.clamp(150 + h / 2, kH - 110 - h / 2);
+    return Rect.fromCenter(center: Offset(cx, cy), width: w, height: h);
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    // The whole stroke stays visible while the finger is down; it fades as
-    // one shape after release.
-    if (!_down && game.t - _released > trailLife) _trail.clear();
     for (final s in _sparks) {
       s.pos += s.vel * dt;
       s.vel = s.vel * (1 - 4 * dt) + Offset(0, 220 * dt);
@@ -93,13 +81,12 @@ class GestureTrail extends PositionComponent with HasGameReference<ShadowGame> {
     for (final f in _flashes) {
       f.t += dt;
     }
-    _flashes.removeWhere((f) => f.t > 0.9);
+    _flashes.removeWhere((f) => f.t > 0.95);
   }
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    _renderTrail(canvas);
     for (final s in _sparks) {
       canvas.drawCircle(
         s.pos,
@@ -114,91 +101,51 @@ class GestureTrail extends PositionComponent with HasGameReference<ShadowGame> {
     }
   }
 
-  void _renderTrail(Canvas canvas) {
-    if (_trail.length < 2) return;
-    final c = _color;
-    final n = _trail.length;
-    final fade = _down ? 0.0 : ((game.t - _released) / trailLife).clamp(0.0, 1.0);
-    final glow = Paint()
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..style = PaintingStyle.stroke
-      ..blendMode = BlendMode.plus;
-    final blade = Paint()
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..style = PaintingStyle.stroke
-      ..blendMode = BlendMode.plus;
-    final core = Paint()
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke
-      ..blendMode = BlendMode.plus;
-    // One wide translucent pass reads as a glow without a blur filter.
-    for (var i = 0; i < n - 1; i++) {
-      final (p1, _) = _trail[i];
-      final (p2, _) = _trail[i + 1];
-      final k = (i + 1) / n; // 0 tail .. 1 head
-      final width = (2.5 + 7.5 * k) * (1 - fade * .7);
-      canvas.drawLine(p1, p2, glow
-        ..color = c.withValues(alpha: .22 * (1 - fade))
-        ..strokeWidth = width * 2.4);
-      canvas.drawLine(p1, p2, blade
-        ..color = c.withValues(alpha: .9 * (1 - fade))
-        ..strokeWidth = width);
-      canvas.drawLine(p1, p2, core
-        ..color = const Color(0xFFFFFFFF).withValues(alpha: (.35 + .55 * k) * (1 - fade))
-        ..strokeWidth = width * .3);
-    }
-  }
-
   void _renderFlash(Canvas canvas, _Flash f) {
-    final grow = (f.t / 0.18).clamp(0.0, 1.0);
-    final fade = (1 - (f.t - 0.35) / 0.55).clamp(0.0, 1.0);
+    final grow = (f.t / 0.16).clamp(0.0, 1.0);
+    final fade = (1 - (f.t - 0.4) / 0.55).clamp(0.0, 1.0);
+    final scale = 0.7 + 0.3 * (1 - math.pow(1 - grow, 3));
+    final xs = f.points.map((p) => p.dx);
+    final ys = f.points.map((p) => p.dy);
+    final cx = (xs.reduce(math.min) + xs.reduce(math.max)) / 2;
+    final cy = (ys.reduce(math.min) + ys.reduce(math.max)) / 2;
+    canvas.save();
+    canvas.translate(cx, cy);
+    canvas.scale(scale, scale);
+    canvas.translate(-cx, -cy);
     final path = Path()..moveTo(f.points.first.dx, f.points.first.dy);
     for (final p in f.points.skip(1)) {
       path.lineTo(p.dx, p.dy);
     }
-    final glow = 10 + grow * 22;
-    canvas.drawPath(path, Paint()
-      ..color = f.color.withValues(alpha: .55 * fade)
+    final stroke = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = glow
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
-      ..blendMode = BlendMode.plus
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6 + grow * 10));
-    canvas.drawPath(path, Paint()
-      ..color = f.color.withValues(alpha: fade)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..blendMode = BlendMode.plus);
-    canvas.drawPath(path, Paint()
-      ..color = const Color(0xFFFFFFFF).withValues(alpha: .9 * fade)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..blendMode = BlendMode.plus);
-    final xs = f.points.map((p) => p.dx);
-    final ys = f.points.map((p) => p.dy);
-    final top = ys.reduce(math.min), bottom = ys.reduce(math.max);
+      ..blendMode = BlendMode.plus;
+    canvas.drawPath(path, stroke
+      ..color = f.color.withValues(alpha: .28 * fade)
+      ..strokeWidth = 34);
+    canvas.drawPath(path, stroke
+      ..color = f.color.withValues(alpha: .9 * fade)
+      ..strokeWidth = 10);
+    canvas.drawPath(path, stroke
+      ..color = const Color(0xFFFFFFFF).withValues(alpha: .95 * fade)
+      ..strokeWidth = 3);
+    canvas.restore();
+
     final size = f.ok ? 20.0 : 15.0;
     final labelW = f.label.length * size * .72 + 24;
-    // Keep the label on screen and off the HUD: below the glyph when the
-    // glyph sits high, otherwise above it.
-    final cx = ((xs.reduce(math.min) + xs.reduce(math.max)) / 2)
-        .clamp(kW / 2 + labelW / 2, kW - labelW / 2 - 8);
-    final above = top - 26 - grow * 6;
-    final y = above < 150 ? math.min(kH - 120, bottom + 30 + grow * 6) : above;
+    final lx = cx.clamp(labelW / 2 + 8, kW - labelW / 2 - 8);
+    final top = ys.reduce(math.min);
+    final bottom = ys.reduce(math.max);
+    final ly = top - 30 > 150 ? top - 30 : math.min(kH - 120, bottom + 30);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-          Rect.fromCenter(center: Offset(cx, y), width: labelW, height: size + 14),
+          Rect.fromCenter(center: Offset(lx, ly), width: labelW, height: size + 14),
           const Radius.circular(8)),
       Paint()..color = const Color(0xFF0E0F1A).withValues(alpha: .72 * fade),
     );
-    drawText(canvas, f.label, Offset(cx, y),
+    drawText(canvas, f.label, Offset(lx, ly),
         size: size,
         color: f.ok ? f.color : const Color(0xFFCFD3E6),
         letterSpacing: 4,

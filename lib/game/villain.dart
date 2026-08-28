@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flutter/painting.dart';
+
+import 'effects.dart';
 import 'fighter.dart';
 import 'shadow_game.dart';
 import 'weapons.dart';
@@ -28,6 +31,7 @@ class VillainFighter extends Fighter {
   double _cool = 1.4;
   int _mode = 0; // 0 chase, 1 strafe away, 2 hold ground (guard)
   double _modeT = 0;
+  double _guardT = 0;
 
   @override
   void update(double dt) {
@@ -37,14 +41,36 @@ class VillainFighter extends Fighter {
     } else {
       ix = 0;
       iz = 0;
+      guardZone = GuardZone.none;
     }
     super.update(dt);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    if (guardZone == GuardZone.none || !alive) return;
+    final s = 0.80 + zPos / kZMax * 0.32;
+    final high = guardZone == GuardZone.high;
+    final pulse = .6 + .4 * math.sin(game.t * 10);
+    final y = high ? -150 * build * s : -8.0;
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(0, y), width: 46 * s, height: 10 * s),
+      Paint()
+        ..color = const Color(0xFF9FDBFF).withValues(alpha: .55 * pulse)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+    drawText(canvas, high ? 'GUARD ▲' : 'GUARD ▼', Offset(0, y + (high ? -12 : 12)),
+        size: 9, letterSpacing: 2, color: const Color(0xFF9FDBFF), opacity: pulse);
   }
 
   void _ai(double dt, Fighter hero) {
     _cool -= dt;
     _thinkT -= dt;
     _modeT -= dt;
+    _guardT -= dt;
+    if (_guardT <= 0) guardZone = GuardZone.none;
 
     final dx = hero.wx - wx;
     final adx = dx.abs();
@@ -67,6 +93,21 @@ class VillainFighter extends Fighter {
     }
     if (_modeT <= 0) _mode = 0;
 
+    // Read the hero's swing and cover a zone; the other zone stays open.
+    if (hero.attacking && adx < 150 && guardZone == GuardZone.none && _guardT < -0.4 &&
+        (state == FState.idle || state == FState.walk) && _rng.nextDouble() < 0.55) {
+      guardZone = _rng.nextDouble() < 0.6 ? GuardZone.high : GuardZone.low;
+      _guardT = 0.55;
+      ix = 0;
+      iz = 0;
+      return;
+    }
+    if (guardZone != GuardZone.none) {
+      ix = 0;
+      iz = 0;
+      return;
+    }
+
     switch (_mode) {
       case 0:
         ix = adx > reach - 10 ? dx.sign : 0;
@@ -77,6 +118,8 @@ class VillainFighter extends Fighter {
       default:
         ix = 0;
         iz = 0;
+        guardZone = GuardZone.high;
+        _guardT = math.max(_guardT, .3);
     }
 
     if ((state == FState.idle || state == FState.walk) &&

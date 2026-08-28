@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../game/arts.dart';
+import '../game/sfx.dart';
 import '../game/shadow_game.dart';
 import '../game/weapons.dart';
 
@@ -29,7 +30,12 @@ class KButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              Sfx.play('click', volume: .6);
+              onTap!();
+            },
       child: Opacity(
         opacity: onTap == null ? .45 : 1,
         child: SizedBox(
@@ -531,8 +537,8 @@ class _SwordRow extends StatelessWidget {
                       chip('STRENGTH ×${w.strength.toStringAsFixed(2)}'),
                       chip('POWER ×${w.power.toStringAsFixed(1)}'),
                       chip('SPEED ×${w.speed.toStringAsFixed(2)}'),
+                      chip('ACTIVE ${sword.active.toStringAsFixed(0)}s'),
                       chip('RECHARGE ${sword.recharge.toStringAsFixed(0)}s'),
-                      chip('DURABILITY ${sword.durability.toStringAsFixed(0)}'),
                     ],
                   ),
                   const SizedBox(height: 8),

@@ -21,26 +21,6 @@ upward forever; every stage pits Kaito against the next of 14 villains, and
 each lap through the roster raises the tier (more HP, damage, aggression).
 Progress (highest stage cleared) is saved on the device.
 
-## Sword cards
-
-Every owned sword is a card in the bar at the bottom of the battle screen —
-Clash-style, with bare hands as the first slot.
-
-- **Strength** multiplies all damage; **Power** additionally multiplies the
-  heavy smash; **Speed** scales swing time.
-- **Durability** wears down with every swing (more when the enemy blocks).
-  When it hits zero the blade **shatters**, goes on **recharge**, and the next
-  ready card is drawn automatically — or you fight bare-handed.
-- **Tap a card mid-fight to switch.** The card you put away recharges for half
-  its recharge time and comes back at full durability.
-- Each sword has a **special**: Quick Draw, Bleed, Cleave, Ignite, Freeze,
-  Lifesteal, Shock, Poison, Radiance, Dragonfire.
-
-Starters: Wakizashi + Katana. Unlocks: Nodachi (stage 2), Flame Blade (4),
-Frost Edge (6), Shadow Blade (8), Thunder Fang (10), Venom Kris (12),
-Excalibur (14), Dragon Cleaver (16). The **Armory** on the map lists every
-blade's stats.
-
 ## Sword arts (draw glyphs)
 
 Every stroke on the right half of the screen leaves a glowing sword trail.
@@ -80,14 +60,37 @@ lightning and dash after-images.
 
 | Input | Action |
 | --- | --- |
-| Left joystick | Move on the isometric floor (x + depth) |
-| Tap (right side) | Quick strike |
-| Draw V / W (right side) | Sword art (see below) |
-| Swipe ◄ / ► | Slash |
-| Swipe ▲ | Rising kick (launches, can headshot) |
-| Swipe ▼ | Heavy smash (breaks guard, can headshot, triggers heavy specials) |
-| Stand still | Auto-guard (blocks all but heavy attacks) |
-| Card bar | Tap a sword card to switch blades |
+| Left stick | Move on the isometric floor (x + depth) |
+| Right stick · flick ▲ | Head cut — headshots often, beaten by a high guard |
+| Right stick · flick ▼ | Low sweep at the feet — trips through a high guard |
+| Right stick · flick ◄ ► | Body slash |
+| Right stick · tap | Quick strike |
+| **Both sticks ▲** | Skull smash — unblockable, guaranteed headshot |
+| Draw **V** / **W** in the middle of the screen | Sword art (V offense, W defense) |
+| Stand still | High guard: head and body covered, feet open |
+| Card bar | Tap a sword card to draw it |
+
+Villains guard too: a **GUARD ▲** marker means the head and body are covered
+(go low), **GUARD ▼** means the feet and body are (go high). Heavy blows and
+sword arts ignore guards.
+
+The finger path is never drawn; when a glyph is read, a clean V or W emblem
+bursts where you drew it with the art's name.
+
+## Sword cards
+
+Every owned sword is a card in the bar. A drawn blade can be used for a short
+**active** window (7–14 s) that drains while it's in your hand; when it runs
+out the blade is **spent** and rests for a long **recharge** (30–60 s), and
+the next ready card is drawn — or you fight bare-handed. Putting a card away
+keeps its remaining time. The Armory lists each blade's active and recharge
+times with its stats and both arts.
+
+## Sound
+
+Chiptune music (menu / battle) and effects for every swing, hit, block,
+headshot, KO, card, art and screen — see [CREDITS.md](CREDITS.md). Audio is
+silent under `flutter test`.
 
 ## Assets
 

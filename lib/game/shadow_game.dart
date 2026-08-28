@@ -14,6 +14,7 @@ import 'gestures.dart';
 import 'hud.dart';
 import 'projectile.dart';
 import 'progress.dart';
+import 'sfx.dart';
 import 'sprites.dart';
 import 'vfx.dart';
 import 'villain.dart';
@@ -88,6 +89,8 @@ class ShadowGame extends FlameGame {
   late final Fighter hero;
   VillainFighter? villain;
   late final JoystickComponent joystick;
+  late final AttackStick attackStick;
+  bool _stickActive = false, _stickFlicked = false;
   late final Announcer announcer;
   late final Hud hud;
   late final GestureTrail trail;
@@ -118,6 +121,8 @@ class ShadowGame extends FlameGame {
   Future<void> onLoad() async {
     sprites = await SpriteLibrary.load(images);
     await progress.load();
+    await Sfx.init();
+    Sfx.music('menu');
     world.add(Backdrop());
 
     hero = Fighter(
@@ -127,11 +132,7 @@ class ShadowGame extends FlameGame {
       build: sprites.builds['martial-hero'] ?? 1.0,
     );
     hero.resetFor(-180, 78, 1);
-    hero.onSwing = (k) {
-      if (phase != Phase.fighting) return;
-      deck.wear(CardDeck.wearPerMove[k] ?? 0);
-      _syncWeapon();
-    };
+    hero.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
     world.add(hero);
 
     joystick = JoystickComponent(
@@ -139,11 +140,17 @@ class ShadowGame extends FlameGame {
       background: CircleComponent(radius: 56, paint: Paint()..color = const Color(0x24FFFFFF)),
       margin: const EdgeInsets.only(left: 34, bottom: 28),
     )..priority = 15;
+    attackStick = AttackStick(
+      onTap: () => heroAttack(MoveKind.punch),
+      knob: CircleComponent(radius: 21, paint: Paint()..color = const Color(0x99FF8B7B)),
+      background: CircleComponent(radius: 56, paint: Paint()..color = const Color(0x24FFFFFF)),
+      margin: const EdgeInsets.only(right: 34, bottom: 28),
+    )..priority = 15;
     announcer = Announcer();
     hud = Hud();
     trail = GestureTrail();
     cardBar = CardBar();
-    camera.viewport.addAll([joystick, GestureZone(), hud, cardBar, trail, announcer]);
+    camera.viewport.addAll([joystick, attackStick, GestureZone(), hud, cardBar, trail, announcer]);
     _rebuildDeck();
   }
 
@@ -176,8 +183,9 @@ class ShadowGame extends FlameGame {
 
   void _rebuildDeck() {
     deck = CardDeck(Swords.unlockedAt(progress.highestCleared));
-    deck.onShatter = (broken, next) {
-      announcer.show('${broken.name} SHATTERED',
+    deck.onSpent = (spent, next) {
+      Sfx.play('spent');
+      announcer.show('${spent.name} SPENT',
           sub: next == null ? 'fighting bare-handed' : '${next.name} drawn',
           life: 1.1,
           color: const Color(0xFFFF8B7B));
@@ -218,6 +226,7 @@ class ShadowGame extends FlameGame {
       dmgScale: cfg.dmg,
       moveSpeed: cfg.speed,
     );
+    v.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
     villain = v;
     world.add(v);
     v.resetFor(180, 78, -1);
@@ -234,7 +243,10 @@ class ShadowGame extends FlameGame {
     phase = Phase.intro;
     phaseT = 0;
     _fightAnnounced = false;
+    _stickActive = false;
     announcer.show('STAGE $n', sub: cfg.name, life: 1.0);
+    Sfx.play('stage');
+    Sfx.music('battle');
   }
 
   void nextStage() => startStage(stage + 1);
@@ -244,6 +256,7 @@ class ShadowGame extends FlameGame {
     overlays.clear();
     phase = Phase.menu;
     overlays.add(overlayMap);
+    Sfx.music('menu');
   }
 
   void showArmory() {
@@ -255,6 +268,7 @@ class ShadowGame extends FlameGame {
     overlays.clear();
     phase = Phase.menu;
     overlays.add(overlayTitle);
+    Sfx.music('menu');
   }
 
   // ---- Cards ------------------------------------------------------------------
@@ -267,6 +281,7 @@ class ShadowGame extends FlameGame {
     } else if (!deck.equip(index)) {
       return;
     }
+    Sfx.play('card', volume: .8);
     _syncWeapon();
   }
 
@@ -329,9 +344,13 @@ class ShadowGame extends FlameGame {
         if (hero.alive) {
           hero.ix = _deadzone(joystick.relativeDelta.x);
           hero.iz = _deadzone(joystick.relativeDelta.y);
+          _pollAttackStick();
+          // Standing still is a high guard: head and body covered, feet open.
+          hero.guardZone = hero.state == FState.idle && hero.h <= 0 ? GuardZone.high : GuardZone.none;
         } else {
           hero.ix = 0;
           hero.iz = 0;
+          hero.guardZone = GuardZone.none;
         }
         if (v != null && v.alive && hero.alive) {
           if (!hero.attacking) hero.facing = v.wx >= hero.wx ? 1 : -1;
@@ -358,6 +377,8 @@ class ShadowGame extends FlameGame {
           progress.clearStage(stage);
           phase = Phase.menu;
           overlays.add(overlayResult);
+          Sfx.play('win');
+          Sfx.music('menu');
         }
       case Phase.gameOver:
         hero.ix = 0;
@@ -367,11 +388,45 @@ class ShadowGame extends FlameGame {
           lastUnlocked = null;
           phase = Phase.menu;
           overlays.add(overlayResult);
+          Sfx.play('lose');
+          Sfx.music('menu');
         }
     }
   }
 
   double _deadzone(double v) => v.abs() < 0.18 ? 0 : v;
+
+  /// Right stick: one attack per flick; both sticks up is the skull smash.
+  void _pollAttackStick() {
+    final d = attackStick.relativeDelta;
+    final mag = d.length;
+    if (!_stickActive && mag > 0.15) {
+      _stickActive = true;
+      _stickFlicked = false;
+    }
+    if (_stickActive && !_stickFlicked && mag > 0.6) {
+      _stickFlicked = true;
+      if (d.y < -0.5) {
+        heroAttack(joystick.relativeDelta.y < -0.55 ? MoveKind.heavy : MoveKind.high);
+      } else if (d.y > 0.5) {
+        heroAttack(MoveKind.kick);
+      } else {
+        heroAttack(MoveKind.slash);
+      }
+    }
+    if (_stickActive && mag < 0.08) _stickActive = false;
+  }
+
+  Rect _bounds(List<Offset> pts) {
+    var l = double.infinity, t = double.infinity, r = -double.infinity, b = -double.infinity;
+    for (final p in pts) {
+      l = math.min(l, p.dx);
+      r = math.max(r, p.dx);
+      t = math.min(t, p.dy);
+      b = math.max(b, p.dy);
+    }
+    return Rect.fromLTRB(l, t, r, b);
+  }
 
   void heroAttack(MoveKind k) {
     if (phase == Phase.fighting && hero.alive) hero.startMove(k);
@@ -393,32 +448,48 @@ class ShadowGame extends FlameGame {
       case GestureKind.swipeRight:
         heroAttack(MoveKind.slash);
       case GestureKind.glyphV:
-        castArt(ArtGesture.v, glyph: r.points);
+        castArt(ArtGesture.v, glyph: _bounds(r.points));
       case GestureKind.glyphW:
-        castArt(ArtGesture.w, glyph: r.points);
+        castArt(ArtGesture.w, glyph: _bounds(r.points));
     }
   }
 
   // ---- Sword arts ------------------------------------------------------------
 
-  void castArt(ArtGesture g, {List<Offset>? glyph}) {
+  void castArt(ArtGesture g, {Rect? glyph}) {
     if (phase != Phase.fighting || !hero.alive) return;
     final art = Arts.art(hero.weapon.id, g);
+    final kind = g == ArtGesture.v ? GestureKind.glyphV : GestureKind.glyphW;
     if (hero.stunned || hero.state == FState.hit) {
-      if (glyph != null) trail.flash(glyph, label: 'STAGGERED', ok: false);
+      if (glyph != null) trail.flash(kind, glyph, label: 'STAGGERED', ok: false);
       return;
     }
     final cd = deck.artCooldown(g);
     if (cd > 0) {
-      if (glyph != null) trail.flash(glyph, label: '${art.name}  ·  ${cd.ceil()}s', ok: false);
+      if (glyph != null) trail.flash(kind, glyph, label: '${art.name}  ·  ${cd.ceil()}s', ok: false);
+      Sfx.play('immune', volume: .4);
       return;
     }
     deck.startArt(g, art.cooldown);
-    if (glyph != null) trail.flash(glyph, label: '${art.glyph}  ·  ${art.name}', ok: true);
+    if (glyph != null) trail.flash(kind, glyph, label: '${art.glyph}  ·  ${art.name}', ok: true);
     _hitStop = math.max(_hitStop, .07);
     _zoomT = .25;
+    Sfx.play('cast', volume: .8);
+    Sfx.play(_artSound(art.kind), volume: .9);
     _executeArt(art);
   }
+
+  String _artSound(ArtKind k) => switch (k) {
+        ArtKind.thunderclap || ArtKind.stormCharge => 'thunder',
+        ArtKind.fireWave || ArtKind.blazingAura || ArtKind.dragonBreath || ArtKind.draconicRage => 'fire',
+        ArtKind.glacialLance || ArtKind.iceArmor => 'ice',
+        ArtKind.holyLance || ArtKind.sanctuary => 'holy',
+        ArtKind.shadowStrike || ArtKind.veil => 'dark',
+        ArtKind.breathe || ArtKind.secondWind || ArtKind.antidote => 'heal',
+        ArtKind.ironWill => 'shield',
+        ArtKind.flashStep || ArtKind.flurry => 'dash',
+        _ => 'cast',
+      };
 
   bool _inFront(double range, {double dz = 40}) {
     final v = villain;
@@ -608,6 +679,7 @@ class ShadowGame extends FlameGame {
     _lastImmune[f] = t;
     world.add(DamagePopup(Vector2(f.position.x, f.position.y - 96), 'IMMUNE'));
     world.add(SparkBurst(at: Vector2(f.position.x, f.position.y - 70), blocked: true));
+    Sfx.play('immune', volume: .6);
   }
 
   // ---- Combat resolution -----------------------------------------------------
@@ -639,14 +711,20 @@ class ShadowGame extends FlameGame {
     _shakeMag = (blocked ? m.shake * .3 : m.shake) *
         (killed ? 1.6 : (crit ? 1.3 : 1));
 
-    if (from == hero) {
-      if (blocked) {
-        deck.wear(CardDeck.wearBlocked);
-        _syncWeapon();
-      } else {
-        combo++;
-        comboT = 1.5;
-      }
+    if (from == hero && !blocked) {
+      combo++;
+      comboT = 1.5;
+    }
+    if (killed) {
+      Sfx.play('ko');
+    } else if (blocked) {
+      Sfx.play('block', volume: .8);
+    } else if (crit) {
+      Sfx.play('crit');
+    } else if (m.heavy) {
+      Sfx.play('hit_heavy');
+    } else {
+      Sfx.one(const ['hit1', 'hit2'], volume: .9);
     }
     if (!blocked && from.lifestealT > 0 && from.weapon.special != Special.lifesteal) {
       from.heal(dmg * 0.25);

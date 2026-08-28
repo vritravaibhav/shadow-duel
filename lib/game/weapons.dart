@@ -2,7 +2,11 @@ import 'dart:ui';
 
 import 'sprites.dart';
 
-enum MoveKind { punch, kick, slash, heavy }
+enum MoveKind { punch, kick, slash, heavy, high }
+
+/// Where a blow lands. A high guard covers head and body, a low guard body
+/// and feet; heavy blows ignore guards.
+enum Zone { head, body, feet }
 
 /// A sword's special ability. Passives apply while equipped; the rest
 /// trigger on hit (or on heavy hit).
@@ -95,18 +99,19 @@ class Weapon {
 class Sword {
   const Sword({
     required this.weapon,
+    required this.active,
     required this.recharge,
-    required this.durability,
     required this.unlockLevel,
     required this.icon,
   });
 
   final Weapon weapon;
 
-  /// Seconds a card stays unavailable after it shatters (half that after a
-  /// voluntary switch).
+  /// Seconds the drawn blade can be used before it must rest.
+  final double active;
+
+  /// Seconds the spent blade rests before it can be drawn again.
   final double recharge;
-  final double durability;
 
   /// Stage that must be cleared to own this sword (0 = starter).
   final int unlockLevel;
@@ -120,43 +125,43 @@ class Swords {
   static const all = [
     Sword(
       weapon: Weapon(id: 'wakizashi', name: 'WAKIZASHI', strength: 0.9, power: 1.0, speed: 1.25, range: 22, trail: Color(0xFFCFFFE0), special: Special.quickDraw),
-      recharge: 6, durability: 90, unlockLevel: 0, icon: 'wakizashi',
+      active: 14, recharge: 30, unlockLevel: 0, icon: 'wakizashi',
     ),
     Sword(
       weapon: Weapon(id: 'katana', name: 'KATANA', strength: 1.15, power: 1.2, speed: 1.0, range: 34, trail: Color(0xFF7DEBFF), special: Special.bleed),
-      recharge: 8, durability: 100, unlockLevel: 0, icon: 'katana',
+      active: 12, recharge: 36, unlockLevel: 0, icon: 'katana',
     ),
     Sword(
       weapon: Weapon(id: 'nodachi', name: 'NODACHI', strength: 1.5, power: 1.7, speed: 0.8, range: 46, trail: Color(0xFFFFD08A), special: Special.cleave),
-      recharge: 12, durability: 120, unlockLevel: 2, icon: 'nodachi',
+      active: 9, recharge: 45, unlockLevel: 2, icon: 'nodachi',
     ),
     Sword(
       weapon: Weapon(id: 'flame', name: 'FLAME BLADE', strength: 1.3, power: 1.5, speed: 0.95, range: 36, trail: Color(0xFFFF8A3D), special: Special.ignite),
-      recharge: 10, durability: 100, unlockLevel: 4, icon: 'flame',
+      active: 10, recharge: 42, unlockLevel: 4, icon: 'flame',
     ),
     Sword(
       weapon: Weapon(id: 'frost', name: 'FROST EDGE', strength: 1.2, power: 1.4, speed: 1.0, range: 36, trail: Color(0xFF9FDBFF), special: Special.freeze),
-      recharge: 10, durability: 110, unlockLevel: 6, icon: 'frost',
+      active: 10, recharge: 42, unlockLevel: 6, icon: 'frost',
     ),
     Sword(
       weapon: Weapon(id: 'shadow', name: 'SHADOW BLADE', strength: 1.25, power: 1.3, speed: 1.1, range: 34, trail: Color(0xFFC77DFF), special: Special.lifesteal),
-      recharge: 9, durability: 95, unlockLevel: 8, icon: 'shadow',
+      active: 9, recharge: 40, unlockLevel: 8, icon: 'shadow',
     ),
     Sword(
       weapon: Weapon(id: 'thunder', name: 'THUNDER FANG', strength: 1.4, power: 1.5, speed: 1.05, range: 38, trail: Color(0xFFFFF176), special: Special.shock),
-      recharge: 11, durability: 105, unlockLevel: 10, icon: 'thunder',
+      active: 9, recharge: 45, unlockLevel: 10, icon: 'thunder',
     ),
     Sword(
       weapon: Weapon(id: 'venom', name: 'VENOM KRIS', strength: 1.1, power: 1.2, speed: 1.2, range: 26, trail: Color(0xFF9CFF6B), special: Special.poison),
-      recharge: 7, durability: 85, unlockLevel: 12, icon: 'venom',
+      active: 12, recharge: 36, unlockLevel: 12, icon: 'venom',
     ),
     Sword(
       weapon: Weapon(id: 'excalibur', name: 'EXCALIBUR', strength: 1.6, power: 1.8, speed: 0.95, range: 40, trail: Color(0xFFFFF4C2), special: Special.radiance),
-      recharge: 14, durability: 140, unlockLevel: 14, icon: 'excalibur',
+      active: 8, recharge: 55, unlockLevel: 14, icon: 'excalibur',
     ),
     Sword(
       weapon: Weapon(id: 'dragon', name: 'DRAGON CLEAVER', strength: 1.8, power: 2.2, speed: 0.75, range: 48, trail: Color(0xFFFF5C3D), special: Special.dragonfire),
-      recharge: 16, durability: 150, unlockLevel: 16, icon: 'dragon',
+      active: 7, recharge: 60, unlockLevel: 16, icon: 'dragon',
     ),
   ];
 
@@ -180,6 +185,7 @@ class MoveSpec {
     required this.kup,
     required this.shake,
     this.heavy = false,
+    this.zone = Zone.body,
   });
 
   final MoveKind kind;
@@ -188,6 +194,7 @@ class MoveSpec {
   final double winStart, winEnd;
   final double dmg, range, kx, kup, shake;
   final bool heavy;
+  final Zone zone;
 
   /// A sword-art strike: unblockable, resolved outside the swing state machine.
   factory MoveSpec.art(double dmg, {double kx = 200, double kup = 0, double shake = 6}) =>
@@ -212,17 +219,33 @@ Map<MoveKind, MoveSpec> buildMoves(Weapon w, SpriteLibrary lib, String charKey) 
       kup: 0,
       shake: 2,
     ),
+    // Low sweep at the feet: trips through a high guard.
     MoveKind.kick: MoveSpec(
       MoveKind.kick,
       'kick',
       dur('kick'),
       winStart: .4,
       winEnd: .66,
-      dmg: 12,
-      range: 56,
-      kx: 150,
-      kup: 320,
+      dmg: 10,
+      range: 60,
+      kx: 130,
+      kup: 300,
       shake: 3,
+      zone: Zone.feet,
+    ),
+    // High cut at the head: headshots often, beaten by a high guard.
+    MoveKind.high: MoveSpec(
+      MoveKind.high,
+      'slash',
+      dur('slash') / (w.speed * 1.05),
+      winStart: .42,
+      winEnd: .64,
+      dmg: 11 * w.strength,
+      range: 46 + w.range,
+      kx: 160,
+      kup: 0,
+      shake: 4,
+      zone: Zone.head,
     ),
     MoveKind.slash: MoveSpec(
       MoveKind.slash,
@@ -248,6 +271,7 @@ Map<MoveKind, MoveSpec> buildMoves(Weapon w, SpriteLibrary lib, String charKey) 
       kup: 120 * cleave,
       shake: 8 * cleave,
       heavy: true,
+      zone: Zone.head,
     ),
   };
 }

@@ -171,7 +171,7 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
     if (game.stage == 1 && game.phase == Phase.fighting && game.stageT < 14) {
       drawText(
         c,
-        'TAP strike   ◄ SWIPE ► slash   ▲ kick   ▼ heavy   ●  draw V / W for sword arts   ●  stand still to GUARD   ●  tap a card to switch blades',
+        'LEFT STICK move   ●   RIGHT STICK flick ▲ head  ▼ feet  ◄► slash, tap strike   ●   BOTH ▲ skull smash   ●   draw V / W in the middle   ●   stand still to guard',
         const Offset(480, 428),
         size: 12,
         letterSpacing: 1.5,
@@ -187,11 +187,14 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
 class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCallbacks {
   CardBar() : super(position: Vector2(0, kH - 96), size: Vector2(kW, 96), priority: 25);
 
-  static const cardW = 58.0, gap = 8.0;
+  static const gap = 6.0;
   double _pop = 0;
   int _popIndex = -2;
 
   int get _count => game.deck.cards.length + 1;
+
+  /// Cards shrink so the whole deck fits between the two sticks.
+  double get cardW => math.min(58.0, (600 - (_count - 1) * gap) / _count);
   double get _startX => kW / 2 - (_count * cardW + (_count - 1) * gap) / 2;
 
   Rect _cardRect(int slot) {
@@ -252,19 +255,20 @@ class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCa
       ui[frame]!.render(canvas, position: Vector2(r.left, r.top), size: Vector2(cardW, cardW));
 
       final icon = card == null ? game.sprites.icons['fists'] : game.sprites.swordIcons[card.sword.id];
+      final iconSize = cardW * .69;
       icon?.render(
         canvas,
-        position: Vector2(r.left + 9, r.top + 6),
-        size: Vector2(40, 40),
+        position: Vector2(r.left + (cardW - iconSize) / 2, r.top + cardW * .1),
+        size: Vector2(iconSize, iconSize),
         overridePaint: Paint()
           ..filterQuality = FilterQuality.none
           ..color = const Color(0xFFFFFFFF).withValues(alpha: ready ? 1 : .45),
       );
 
       if (card != null) {
-        // Durability bar.
-        final frac = card.durabilityFrac;
-        final barR = Rect.fromLTWH(r.left + 8, r.bottom - 11, cardW - 16, 5);
+        // Time left on the blade (drains while drawn).
+        final frac = card.activeFrac;
+        final barR = Rect.fromLTWH(r.left + 6, r.bottom - 10, cardW - 12, 5);
         canvas.drawRRect(RRect.fromRectAndRadius(barR, const Radius.circular(2)),
             Paint()..color = const Color(0x99000000));
         canvas.drawRRect(
@@ -272,8 +276,12 @@ class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCa
               Rect.fromLTWH(barR.left, barR.top, barR.width * frac, barR.height),
               const Radius.circular(2)),
           Paint()
-            ..color = Color.lerp(const Color(0xFFFF5A5A), const Color(0xFF6CF0A0), frac)!,
+            ..color = Color.lerp(const Color(0xFFFF5A5A), const Color(0xFF7DEBFF), frac)!,
         );
+        if (equipped) {
+          drawText(canvas, '${card.activeLeft.ceil()}s', Offset(r.right - 10, r.top + 9),
+              size: 9, color: const Color(0xFFFFFFFF), letterSpacing: 0, glow: 3);
+        }
         // Recharge overlay.
         if (card.cooldown > 0) {
           final cf = card.cooldownFrac;
@@ -299,7 +307,7 @@ class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCa
 class GestureZone extends PositionComponent
     with HasGameReference<ShadowGame>, TapCallbacks, DragCallbacks {
   GestureZone()
-      : super(position: Vector2(kW / 2, 0), size: Vector2(kW / 2, kH), priority: 5);
+      : super(position: Vector2(160, 0), size: Vector2(kW - 320, kH), priority: 5);
 
   final List<Offset> _pts = [];
   int? _pointer;
@@ -324,19 +332,15 @@ class GestureZone extends PositionComponent
     super.onDragStart(event);
     if (_pointer != null) return; // one stroke at a time
     _pointer = event.pointerId;
-    final p = _viewport(event.localPosition);
     _pts
       ..clear()
-      ..add(p);
-    game.trail.begin(p);
+      ..add(_viewport(event.localPosition));
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     if (event.pointerId != _pointer) return;
-    final p = _viewport(event.localEndPosition);
-    _pts.add(p);
-    game.trail.extend(p);
+    _pts.add(_viewport(event.localEndPosition));
   }
 
   @override
@@ -344,7 +348,6 @@ class GestureZone extends PositionComponent
     super.onDragEnd(event);
     if (event.pointerId != _pointer) return;
     _pointer = null;
-    game.trail.end();
     game.onStroke(GestureRecognizer.recognize(_pts));
   }
 
@@ -353,6 +356,19 @@ class GestureZone extends PositionComponent
     super.onDragCancel(event);
     if (event.pointerId != _pointer) return;
     _pointer = null;
-    game.trail.end();
   }
+}
+
+
+/// The right stick: flick up to cut at the head, down to sweep the feet,
+/// sideways to slash the body; a tap is a quick strike. Both sticks up at
+/// once is the unblockable skull smash.
+class AttackStick extends JoystickComponent with TapCallbacks {
+  AttackStick({required this.onTap, required super.knob, required super.background, super.margin});
+
+  /// A tap without a flick: the quick strike.
+  final void Function() onTap;
+
+  @override
+  void onTapUp(TapUpEvent event) => onTap();
 }

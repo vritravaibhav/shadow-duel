@@ -16,17 +16,9 @@ Future<void> frames(WidgetTester tester, int n) async {
 Future<void> shot(WidgetTester tester, String name) =>
     expectLater(find.byType(RepaintBoundary).first, matchesGoldenFile('../test/goldens/$name.png'));
 
-/// Feed a stroke through the trail the way the finger would, point by point.
-Future<void> stroke(WidgetTester tester, ShadowGame game, List<Offset> pts, {bool finish = true}) async {
-  game.trail.begin(pts.first);
-  for (final p in pts.skip(1)) {
-    game.trail.extend(p);
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (finish) {
-    game.trail.end();
-    game.onStroke(GestureRecognizer.recognize(pts));
-  }
+/// Hand a finished stroke to the game (the finger path itself is never drawn).
+void stroke(ShadowGame game, List<Offset> pts) {
+  game.onStroke(GestureRecognizer.recognize(pts));
 }
 
 List<Offset> vGlyph() => [
@@ -78,19 +70,12 @@ void main() {
     v.zPos = 80;
     hero.facing = 1;
 
-    // Katana: mid-stroke trail, then the V flash with the crescent flying.
+    // Katana: the V emblem flashes and the crescent flies.
     game.equipCard(1);
-    final pts = vGlyph();
-    await stroke(tester, game, pts.sublist(0, 20), finish: false);
-    await shot(tester, 'art_trail');
-    for (final p in pts.sublist(20)) {
-      game.trail.extend(p);
-      await tester.pump(const Duration(milliseconds: 16));
-    }
-    game.trail.end();
-    game.onStroke(GestureRecognizer.recognize(pts));
-    await frames(tester, 5);
-    await shot(tester, 'art_crescent');
+    game.deck.artLock = 0;
+    stroke(game, vGlyph());
+    await frames(tester, 4);
+    await shot(tester, 'art_glyph');
     await frames(tester, 30);
 
     // Thunder Fang: Thunderclap.

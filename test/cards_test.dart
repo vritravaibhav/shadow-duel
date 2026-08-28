@@ -3,34 +3,32 @@ import 'package:shadow_duel/game/cards.dart';
 import 'package:shadow_duel/game/weapons.dart';
 
 void main() {
-  test('card deck: switching, wear, shatter, recharge', () {
+  test('card deck: a drawn blade runs out, rests, and comes back', () {
     final deck = CardDeck(Swords.unlockedAt(2)); // wakizashi, katana, nodachi
     expect(deck.cards.length, 3);
     expect(deck.weapon.id, 'wakizashi');
 
-    // Switching puts the old card on half recharge.
+    // Switching keeps the old card's remaining time.
+    deck.update(4);
     expect(deck.equip(1), isTrue);
     expect(deck.weapon.id, 'katana');
-    expect(deck.cards[0].cooldown, closeTo(3, 1e-9));
-    expect(deck.equip(0), isFalse);
-    deck.update(3);
-    expect(deck.cards[0].ready, isTrue);
+    expect(deck.cards[0].activeLeft, closeTo(10, 1e-9));
 
-    // Wearing the katana down shatters it and auto-draws the first ready card.
-    (Sword, Sword?)? shattered;
-    deck.onShatter = (b, n) => shattered = (b, n);
-    deck.wear(60);
-    expect(deck.cards[1].durabilityFrac, closeTo(0.4, 1e-9));
-    deck.wear(50);
-    expect(shattered?.$1.id, 'katana');
-    expect(shattered?.$2?.id, 'wakizashi');
+    // The katana's 12 s window runs out: it rests and the wakizashi is drawn.
+    (Sword, Sword?)? spent;
+    deck.onSpent = (s, n) => spent = (s, n);
+    deck.update(12.5);
+    expect(spent?.$1.id, 'katana');
+    expect(spent?.$2?.id, 'wakizashi');
     expect(deck.equipped, 0);
-    expect(deck.cards[1].cooldown, closeTo(8, 1e-9));
+    expect(deck.cards[1].ready, isFalse);
+    expect(deck.cards[1].cooldown, closeTo(36, 1e-9));
+    expect(deck.equip(1), isFalse);
 
-    // A recharged card comes back at full durability.
-    deck.update(8);
+    // After the recharge the katana is back with a full window.
+    deck.update(36);
     expect(deck.cards[1].ready, isTrue);
-    expect(deck.cards[1].durability, 100);
+    expect(deck.cards[1].activeLeft, 12);
 
     deck.unequip();
     expect(deck.weapon.id, 'fists');

@@ -9,6 +9,10 @@ import 'weapons.dart';
 
 enum FState { idle, walk, attack, hit, dead, victory }
 
+/// What a fighter is covering: a high guard shields head and body, a low
+/// guard body and feet.
+enum GuardZone { none, high, low }
+
 /// A damage-over-time effect (bleed, burn, poison).
 class Dot {
   Dot(this.dps, this.left, this.color);
@@ -81,8 +85,23 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
 
   static const _moveSpeedX = 200.0, _moveSpeedZ = 130.0;
 
+  GuardZone guardZone = GuardZone.none;
+
   bool get alive => hp > 0;
-  bool get isGuarding => alive && h <= 0 && state == FState.idle;
+  bool get isGuarding => guardZone != GuardZone.none;
+
+  /// Whether a blow to [zone] is turned by the current guard.
+  bool guards(Zone zone) {
+    if (!alive || h > 0) return false;
+    switch (guardZone) {
+      case GuardZone.none:
+        return false;
+      case GuardZone.high:
+        return zone != Zone.feet;
+      case GuardZone.low:
+        return zone != Zone.head;
+    }
+  }
   bool get attacking => state == FState.attack;
   bool get burning => dots.any((d) => d.color == burnColor);
   bool get poisoned => dots.any((d) => d.color == poisonColor);
@@ -116,6 +135,7 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     shieldHp = 0;
     stunT = 0;
     guaranteedCrit = false;
+    guardZone = GuardZone.none;
     _trail.clear();
   }
 
@@ -309,7 +329,7 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     final dz = (op.zPos - zPos).abs();
     if (dx > -16 && dx < m.range + 20 && dz < 30 && (op.h - h).abs() < 70) {
       hitApplied = true;
-      final blocked = op.isGuarding && !m.heavy;
+      final blocked = op.guards(m.zone) && !m.heavy;
       op._receiveHit(this, m, blocked);
     }
   }
@@ -321,16 +341,16 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     }
     final dir = from.facing.toDouble();
     var dmg = m.dmg * from.dmgScale * from.outgoingMult * damageTakenMult;
-    // Kicks and overhead smashes connect with the head sometimes: a headshot.
+    // Headshots: certain for the skull smash, likely for head cuts, rare for
+    // a sweep that catches the chin.
     var crit = false;
-    final critChance = from.weapon.special == Special.shock ? 0.44 : 0.22;
+    var critChance = m.heavy ? 1.0 : (m.zone == Zone.head ? .45 : (m.kind == MoveKind.kick ? .15 : 0.0));
+    if (from.weapon.special == Special.shock) critChance = math.min(1, critChance * 2);
     if (from.guaranteedCrit && !blocked) {
       crit = true;
       from.guaranteedCrit = false;
       dmg *= 1.6;
-    } else if (!blocked &&
-        (m.kind == MoveKind.kick || m.kind == MoveKind.heavy) &&
-        _rng.nextDouble() < critChance) {
+    } else if (!blocked && _rng.nextDouble() < critChance) {
       crit = true;
       dmg *= 1.6;
     }
