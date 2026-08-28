@@ -168,25 +168,44 @@ jobs:
           retention-days: 14
 
       # Deploy to Pages only from main; PRs just build.
+      # Pages must be switched on for the repo (Settings -> Pages -> Source:
+      # GitHub Actions). If it isn't, say so instead of failing the run.
       - name: Configure Pages
+        id: pages
         if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         uses: actions/configure-pages@v5
         with:
           enablement: true
 
       - name: Upload Pages artifact
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
       - name: Deploy to GitHub Pages
         id: deployment
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.pages.outcome == 'success'
         uses: actions/deploy-pages@v4
 
+      - name: Tell me how to switch Pages on
+        if: github.ref == 'refs/heads/main' && steps.pages.outcome != 'success'
+        run: |
+          {
+            echo "## Web built, but not published"
+            echo ""
+            echo "GitHub Pages is not enabled for this repository, so there is"
+            echo "nowhere to deploy to. Turn it on once:"
+            echo ""
+            echo "**Settings -> Pages -> Build and deployment -> Source: GitHub Actions**"
+            echo ""
+            echo "Then re-run this workflow and the link will appear here."
+            echo "The web bundle is attached above as the \`shadow-duel-web\` artifact."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Show the link in the run summary
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.deployment.outcome == 'success'
         run: |
           {
             echo "## Play it"
