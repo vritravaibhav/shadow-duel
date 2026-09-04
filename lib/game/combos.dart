@@ -488,13 +488,16 @@ class ComboClip {
   }
 
   static ComboClip _block(Combo c, ClipPhase quickIn, ClipPhase quickOut) {
-    // The wind-up frames of the pack's attacks double as guard poses.
+    // The wind-up frames of the pack's attacks double as guard poses, and the
+    // pose has to match the zone it covers or the guard cannot be read: the
+    // overhead wind-up (kick/slash/heavy) guards high, the low blade across
+    // the body (punch) guards low.
     final (String anim, double at) = switch (c.right) {
-      Dir.up => ('punch', .15),
-      Dir.upFwd => ('heavy', .2),
-      Dir.fwd => ('slash', .15),
-      Dir.downFwd => ('kick', .3),
-      _ => ('kick', .15),
+      Dir.up => ('heavy', .2),
+      Dir.upFwd => ('slash', .15),
+      Dir.fwd => ('kick', .3),
+      Dir.downFwd => ('punch', .2),
+      _ => ('punch', .1),
     };
     final (lean, squash) = switch (c.left) {
       Dir.upBack => (-.25, 1.03),
