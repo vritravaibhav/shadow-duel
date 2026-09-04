@@ -31,10 +31,49 @@ class VillainFighter extends Fighter {
   double _guardT = 0;
   int _guardedSwing = -1;
 
+  /// A sparring dummy: no AI, the game scripts its guard and swings.
+  bool dummy = false;
+
+  /// Every swing is telegraphed: the villain plants its feet for
+  /// [windUpTime] before it starts, long enough to read the zone and block.
+  MoveKind? _windUp;
+  double _windUpT = 0;
+  static const windUpTime = .42;
+
+  bool get windingUp => _windUp != null;
+
+  /// The zone of the swing being telegraphed, for the incoming marker.
+  Zone? get incomingZone => _windUp == null ? null : moves[_windUp!]!.zone;
+
+  /// Fraction of the wind-up elapsed.
+  double get windUpU => _windUp == null ? 0 : 1 - (_windUpT / windUpTime).clamp(0.0, 1.0);
+
+  void windUp(MoveKind k, [double seconds = windUpTime]) {
+    if (!alive || stunned || state == FState.hit || attacking) return;
+    _windUp = k;
+    _windUpT = seconds;
+    ix = 0;
+    iz = 0;
+  }
+
   @override
   void update(double dt) {
     final hero = opponent;
-    if (game.phase == Phase.fighting && alive && hero != null && hero.alive && !stunned && hero.veilT <= 0) {
+    if (_windUp != null) {
+      _windUpT -= dt;
+      ix = 0;
+      iz = 0;
+      if (state == FState.hit || stunned || !alive) {
+        _windUp = null;
+      } else if (_windUpT <= 0) {
+        final k = _windUp!;
+        _windUp = null;
+        startMove(k);
+      }
+    } else if (dummy) {
+      ix = 0;
+      iz = 0;
+    } else if (game.phase == Phase.fighting && alive && hero != null && hero.alive && !stunned && hero.veilT <= 0) {
       _ai(dt, hero);
     } else {
       ix = 0;
@@ -109,7 +148,7 @@ class VillainFighter extends Fighter {
         _cool <= 0 &&
         adx < reach + 26 &&
         dz.abs() < 24) {
-      startMove(_pickMove());
+      windUp(_pickMove());
       _cool = (0.7 + _rng.nextDouble() * 0.9) / aggression;
       ix = 0;
       iz = 0;

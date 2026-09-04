@@ -2,11 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/painting.dart';
 
 import 'arts.dart';
 import 'background.dart';
 import 'cards.dart';
+import 'combos.dart';
 import 'effects.dart';
 import 'fighter.dart';
 import 'gesture_fx.dart';
@@ -16,6 +18,7 @@ import 'projectile.dart';
 import 'progress.dart';
 import 'sfx.dart';
 import 'sprites.dart';
+import 'tutorial.dart';
 import 'vfx.dart';
 import 'villain.dart';
 import 'weapons.dart';
@@ -66,6 +69,7 @@ class ShadowGame extends FlameGame {
   static const overlayArmory = 'armory';
   static const overlayResult = 'result';
   static const overlayPause = 'pause';
+  static const overlayDojo = 'dojo';
 
   /// Villain roster; the infinite map cycles through it with rising tiers.
   static const roster = [
@@ -91,7 +95,22 @@ class ShadowGame extends FlameGame {
   VillainFighter? villain;
   late final JoystickComponent joystick;
   late final AttackStick attackStick;
-  bool _stickActive = false, _stickFlicked = false;
+
+  /// What each stick holds this frame (relative to the enemy) and the combo
+  /// the pair spells, for the HUD.
+  Dir? leftDir, rightDir;
+  Combo? heldCombo;
+
+  /// Stand-ins for the sticks, so tests can hold combos the way a thumb does.
+  @visibleForTesting
+  Vector2? leftStickOverride, rightStickOverride;
+  Vector2 get _leftStick => leftStickOverride ?? joystick.relativeDelta;
+  Vector2 get _rightStick => rightStickOverride ?? attackStick.relativeDelta;
+
+  /// Sparring in the dojo: the tutorial being practised, if any.
+  Practice? practice;
+  double _dummyT = 0;
+  double _heroPrevX = 0;
 
   /// The skull smash is unblockable, so it rests between uses.
   static const smashRecharge = 6.0;
@@ -150,6 +169,7 @@ class ShadowGame extends FlameGame {
     );
     hero.resetFor(-180, 78, 1);
     hero.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
+    hero.onComboCycle = _onHeroCycle;
     world.add(hero);
 
     joystick = JoystickComponent(
@@ -270,7 +290,9 @@ class ShadowGame extends FlameGame {
     phase = Phase.intro;
     phaseT = 0;
     _fightAnnounced = false;
-    _stickActive = false;
+    practice = null;
+    leftDir = rightDir = null;
+    heldCombo = null;
     smashCd = 0;
     _pendingCard = null;
     battlePaused = false;
@@ -309,12 +331,188 @@ class ShadowGame extends FlameGame {
   }
 
   /// Leave the battle and go back to the map. The stage is not cleared.
+  /// Sparring returns to the dojo instead.
   void quitToMap() {
     battlePaused = false;
     villain?.removeFromParent();
     villain = null;
     hero.resetFor(-180, 78, 1);
+    if (practice != null) {
+      practice = null;
+      showDojo();
+      return;
+    }
     showMap();
+  }
+
+  /// The combo library and tutorial.
+  void showDojo() {
+    overlays.clear();
+    battlePaused = false;
+    phase = Phase.menu;
+    overlays.add(overlayDojo);
+    Sfx.music('menu');
+  }
+
+  bool get practising => practice != null;
+
+  // ---- Dojo sparring ------------------------------------------------------
+
+  /// Spar against a dummy that never dies, starting at tutorial [lesson].
+  void startPractice(int lesson) {
+    overlays.clear();
+    villain?.removeFromParent();
+    final v = VillainFighter(
+      name: 'DUMMY',
+      charKey: 'martial-hero-2',
+      lib: sprites,
+      build: sprites.builds['martial-hero-2'] ?? 1.0,
+      weapon: Weapon.enemyBlade,
+      maxHealth: 9999,
+      aggression: 1,
+      dmgScale: .08,
+    )..dummy = true;
+    v.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
+    villain = v;
+    world.add(v);
+    v.resetFor(120, 78, -1);
+    hero.resetFor(-120, 78, 1);
+    hero.hp = hero.maxHp;
+    hero.opponent = v;
+    v.opponent = hero;
+    _rebuildDeck();
+    combo = 0;
+    comboT = 0;
+    stageT = 0;
+    hud.resetGhosts();
+    lastUnlocked = null;
+    practice = Practice(index: lesson.clamp(0, Lesson.all.length - 1));
+    _dummyT = 1.2;
+    _heroPrevX = hero.wx;
+    phase = Phase.intro;
+    phaseT = 0;
+    _fightAnnounced = true;
+    smashCd = 0;
+    _pendingCard = null;
+    battlePaused = false;
+    stageMaxCombo = 0;
+    leftDir = rightDir = null;
+    heldCombo = null;
+    overlays.remove(overlayPause);
+    announcer.show('DOJO', sub: 'lesson ${lesson + 1}  ·  ${practice!.lesson.title}', life: 1.0);
+    Sfx.play('stage');
+    Sfx.music('battle');
+  }
+
+  void _beginLesson() {
+    final p = practice!;
+    final v = villain!;
+    hero.hp = hero.maxHp;
+    v.guardZone = GuardZone.none;
+    _dummyT = 1.2;
+    announcer.show('LESSON ${p.index + 1}', sub: p.lesson.title, life: 1.0);
+  }
+
+  void _updatePractice(double dt) {
+    final p = practice!;
+    final v = villain;
+    if (v == null || p.finished) return;
+    if (p.lessonDone) {
+      p.doneT += dt;
+      if (p.doneT > 1.5) {
+        p.nextLesson();
+        if (p.finished) {
+          announcer.show('DOJO COMPLETE', sub: 'every combo is yours', life: 2.0, color: const Color(0xFFFFD75A));
+          Sfx.play('win');
+          later(2.4, () {
+            if (practice != null) quitToMap();
+          });
+        } else {
+          _beginLesson();
+        }
+      }
+      return;
+    }
+    final lesson = p.lesson;
+    if (lesson.goal == LessonGoal.walk) {
+      if (hero.state == FState.walk) p.walked += (hero.wx - _heroPrevX).abs();
+      if (p.walked >= 70) {
+        p.walked -= 70;
+        _practiceScore();
+      }
+    }
+    _heroPrevX = hero.wx;
+
+    // The dummy keeps its health and plays its part.
+    v.hp = v.maxHp;
+    switch (lesson.dummy) {
+      case DummyMode.still:
+        v.guardZone = GuardZone.none;
+      case DummyMode.guards:
+        _dummyT -= dt;
+        if (_dummyT <= 0) {
+          _dummyT = 2.4;
+          v.guardZone = v.guardZone == GuardZone.high ? GuardZone.low : GuardZone.high;
+        }
+      case DummyMode.attacks:
+        v.guardZone = GuardZone.none;
+        _dummyT -= dt;
+        final near = (hero.wx - v.wx).abs() < v.moves[MoveKind.punch]!.range + 40 &&
+            (hero.zPos - v.zPos).abs() < 30;
+        if (_dummyT <= 0 && near && !v.attacking && !v.windingUp && v.state != FState.hit) {
+          _dummyT = 1.9;
+          const kinds = [MoveKind.high, MoveKind.punch, MoveKind.kick];
+          v.windUp(kinds[_rng.nextInt(kinds.length)], .6);
+        }
+    }
+  }
+
+  void _practiceScore() {
+    final p = practice!;
+    if (p.lessonDone) return;
+    if (p.score()) {
+      announcer.show('${p.lesson.title}  ✓', life: .9, color: const Color(0xFF9CFF6B));
+      Sfx.play('heal', volume: .7);
+    } else {
+      Sfx.play('click', volume: .5);
+    }
+  }
+
+  void _practiceStrike(Fighter from, MoveSpec m, bool blocked, bool parried) {
+    final p = practice!;
+    if (p.lessonDone) return;
+    if (from == hero) {
+      switch (p.lesson.goal) {
+        case LessonGoal.hit:
+        case LessonGoal.openHit:
+          if (!blocked) _practiceScore();
+        case LessonGoal.strokes:
+          if (!blocked && p.strokes.add(strokeFamily(m))) _practiceScore();
+        case LessonGoal.smash:
+          if (m.heavy && !blocked) _practiceScore();
+        default:
+          break;
+      }
+    } else {
+      switch (p.lesson.goal) {
+        case LessonGoal.block:
+          if (blocked && !parried) _practiceScore();
+        case LessonGoal.parry:
+          if (parried) _practiceScore();
+        default:
+          break;
+      }
+    }
+  }
+
+  /// A new cycle of the hero's held combo: the smash spends its charge, and
+  /// the dojo counts steps.
+  void _onHeroCycle(Combo c, bool smash) {
+    if (smash) smashCd = smashRecharge;
+    final p = practice;
+    if (p == null || p.lessonDone) return;
+    if (p.lesson.goal == LessonGoal.stepBack && c.kind == ComboKind.stepBack) _practiceScore();
+    if (p.lesson.goal == LessonGoal.advance && c.kind == ComboKind.advance) _practiceScore();
   }
 
   /// Three stars: win, keep at least half your health, and land an 8-hit combo.
@@ -440,16 +638,13 @@ class ShadowGame extends FlameGame {
         deck.update(dt);
         final v = villain;
         if (hero.alive) {
-          hero.ix = _deadzone(joystick.relativeDelta.x);
-          hero.iz = _deadzone(joystick.relativeDelta.y);
-          _pollAttackStick();
-          // Standing still is a high guard: head and body covered, feet open.
-          hero.guardZone = hero.state == FState.idle && hero.h <= 0 ? GuardZone.high : GuardZone.none;
+          _pollSticks();
         } else {
           hero.ix = 0;
           hero.iz = 0;
           hero.guardZone = GuardZone.none;
         }
+        if (practice != null) _updatePractice(dt);
         if (v != null && v.alive && hero.alive) {
           if (!hero.attacking) hero.facing = v.wx >= hero.wx ? 1 : -1;
           if (!v.attacking) v.facing = hero.wx >= v.wx ? 1 : -1;
@@ -465,6 +660,7 @@ class ShadowGame extends FlameGame {
       case Phase.roundOver:
         hero.ix = 0;
         hero.iz = 0;
+        hero.holdCombo(null);
         if (phaseT > .7 && hero.alive && hero.state != FState.victory) {
           hero.state = FState.victory;
           hero.stateT = 0;
@@ -498,34 +694,29 @@ class ShadowGame extends FlameGame {
 
   double _deadzone(double v) => v.abs() < 0.18 ? 0 : v;
 
-  /// Right stick: one attack per flick; both sticks up is the skull smash.
-  void _pollAttackStick() {
-    final d = attackStick.relativeDelta;
-    final mag = d.length;
-    if (!_stickActive && mag > 0.15) {
-      _stickActive = true;
-      _stickFlicked = false;
+  /// Two held sticks spell a combo (see combos.dart); the left stick alone
+  /// walks. Sectors are read relative to the enemy, so "toward" is always
+  /// the same combo whichever side the hero stands on.
+  void _pollSticks() {
+    final face = hero.facing;
+    final ls = _leftStick, rs = _rightStick;
+    leftDir = Dir.decode(ls, face, prev: leftDir);
+    rightDir = Dir.decode(rs, face, prev: rightDir);
+    hero.smashArmed = smashCd <= 0;
+    final l = leftDir, r = rightDir;
+    if (l != null && r != null) {
+      heldCombo = Combo.of(l, r);
+      hero.holdCombo(heldCombo);
+      hero.ix = 0;
+      hero.iz = 0;
+    } else {
+      heldCombo = null;
+      hero.holdCombo(null);
+      hero.ix = _deadzone(ls.x);
+      hero.iz = _deadzone(ls.y);
     }
-    if (_stickActive && !_stickFlicked && mag > 0.6) {
-      _stickFlicked = true;
-      if (d.y < -0.5) {
-        final bothUp = joystick.relativeDelta.y < -0.55;
-        if (bothUp && smashCd > 0) {
-          Sfx.play('immune', volume: .35);
-          heroAttack(MoveKind.high);
-        } else if (bothUp) {
-          smashCd = smashRecharge;
-          heroAttack(MoveKind.heavy);
-        } else {
-          heroAttack(MoveKind.high);
-        }
-      } else if (d.y > 0.5) {
-        heroAttack(MoveKind.kick);
-      } else {
-        heroAttack(MoveKind.slash);
-      }
-    }
-    if (_stickActive && mag < 0.08) _stickActive = false;
+    // Guards only come from held combos; the fighter owns them while in one.
+    if (hero.state != FState.combo) hero.guardZone = GuardZone.none;
   }
 
   Rect _bounds(List<Offset> pts) {
@@ -796,15 +987,26 @@ class ShadowGame extends FlameGame {
   // ---- Combat resolution -----------------------------------------------------
 
   void onStrike(Fighter from, Fighter target, MoveSpec m, double dmg,
-      bool blocked, bool killed, bool crit) {
+      bool blocked, bool killed, bool crit, {bool parried = false}) {
     final cp = Vector2(
       (from.position.x + target.position.x) / 2,
       target.position.y - 74,
     );
+    if (practice != null) _practiceStrike(from, m, blocked, parried);
     final sp = from.weapon.special;
     final erupt = !blocked && m.heavy && sp == Special.dragonfire;
     world.add(SparkBurst(
-        at: cp, heavy: m.heavy || crit, blocked: blocked, ko: killed || erupt));
+        at: cp, heavy: m.heavy || crit || parried, blocked: blocked, ko: killed || erupt));
+    if (parried) {
+      world.add(DamagePopup(cp + Vector2(0, -24), 'PARRY!', big: true));
+      world.add(VfxAnim('hit3', at: cp, scale_: 3, flipX: from.facing < 0));
+      _hitStop = math.max(_hitStop, .08);
+      _shakeT = .25;
+      _shakeMag = 5;
+      Sfx.play('shield', volume: .9);
+      Sfx.play('block', volume: .6);
+      return;
+    }
     if (!blocked) {
       final spark = ['hit1', 'hit2', 'hit3'][_rng.nextInt(3)];
       world.add(VfxAnim(spark, at: cp, scale_: m.heavy || crit ? 3.4 : 2.6, flipX: from.facing < 0));
@@ -868,6 +1070,13 @@ class ShadowGame extends FlameGame {
 
   void onKO(Fighter f) {
     if (phase != Phase.fighting) return;
+    if (practice != null) {
+      // Nobody goes down in the dojo.
+      f.hp = f.maxHp;
+      f.state = FState.idle;
+      f.stateT = 0;
+      return;
+    }
     if (f == villain) {
       phase = Phase.roundOver;
       phaseT = 0;

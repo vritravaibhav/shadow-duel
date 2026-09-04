@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'game/shadow_game.dart';
+import 'ui/dojo.dart';
 import 'ui/screens.dart';
 
 Future<void> main() async {
@@ -41,6 +42,7 @@ class _ShadowDuelAppState extends State<ShadowDuelApp> {
             ShadowGame.overlayArmory: (context, g) => ArmoryScreen(game: g),
             ShadowGame.overlayResult: (context, g) => ResultScreen(game: g),
             ShadowGame.overlayPause: (context, g) => PauseScreen(game: g),
+            ShadowGame.overlayDojo: (context, g) => DojoScreen(game: g),
           },
           initialActiveOverlays: const [ShadowGame.overlayTitle],
         ),

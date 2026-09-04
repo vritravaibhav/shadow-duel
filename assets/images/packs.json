@@ -222,6 +222,32 @@
     "loop": true,
     "flip": false,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/martial-hero/Jump.png",
+    "n": 2,
+    "fw": 200,
+    "fh": 200,
+    "ax": 94.5,
+    "ay": 122,
+    "scale": 0.3467,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/martial-hero/Fall.png",
+    "n": 2,
+    "fw": 200,
+    "fh": 200,
+    "ax": 94.5,
+    "ay": 122,
+    "scale": 0.3467,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
    }
   },
   "martial-hero-2": {
@@ -412,6 +438,32 @@
     "scale": 0.3733,
     "dur": 0.4,
     "loop": true,
+    "flip": false,
+    "pixel": true
+   },
+   "jump": {
+    "file": "packs/martial-hero-2/Jump.png",
+    "n": 2,
+    "fw": 200,
+    "fh": 200,
+    "ax": 97.5,
+    "ay": 128,
+    "scale": 0.3733,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/martial-hero-2/Fall.png",
+    "n": 2,
+    "fw": 200,
+    "fh": 200,
+    "ax": 97.5,
+    "ay": 128,
+    "scale": 0.3733,
+    "dur": 0.2,
+    "loop": false,
     "flip": false,
     "pixel": true
    }
@@ -654,6 +706,83 @@
     "loop": true,
     "flip": true,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/martial-hero-3/GoingUp.png",
+    "n": 3,
+    "fw": 126,
+    "fh": 126,
+    "ax": 68.0,
+    "ay": 82,
+    "scale": 0.2733,
+    "dur": 0.3,
+    "loop": false,
+    "flip": true,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/martial-hero-3/GoingDown.png",
+    "n": 3,
+    "fw": 126,
+    "fh": 126,
+    "ax": 68.0,
+    "ay": 82,
+    "scale": 0.2733,
+    "dur": 0.3,
+    "loop": false,
+    "flip": true,
+    "pixel": true
+   },
+   "attack3": {
+    "file": "packs/martial-hero-3/Attack3.png",
+    "n": 9,
+    "fw": 126,
+    "fh": 126,
+    "ax": 68.0,
+    "ay": 82,
+    "scale": 0.2733,
+    "dur": 0.75,
+    "loop": false,
+    "flip": true,
+    "pixel": true,
+    "tip": [
+     [
+      168.3,
+      -172.0
+     ],
+     [
+      186.6,
+      -122.6
+     ],
+     [
+      190.2,
+      -100.6
+     ],
+     [
+      182.9,
+      -76.8
+     ],
+     [
+      91.5,
+      -16.5
+     ],
+     [
+      80.5,
+      -16.5
+     ],
+     [
+      54.9,
+      -9.1
+     ],
+     [
+      54.9,
+      -9.1
+     ],
+     [
+      54.9,
+      -9.1
+     ]
+    ]
    }
   },
   "hero-knight-2": {
@@ -876,6 +1005,45 @@
     "scale": 0.26,
     "dur": 1.1,
     "loop": true,
+    "flip": false,
+    "pixel": true
+   },
+   "jump": {
+    "file": "packs/hero-knight-2/Jump.png",
+    "n": 4,
+    "fw": 140,
+    "fh": 140,
+    "ax": 70.0,
+    "ay": 83,
+    "scale": 0.26,
+    "dur": 0.4,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/hero-knight-2/Fall.png",
+    "n": 4,
+    "fw": 140,
+    "fh": 140,
+    "ax": 70.0,
+    "ay": 83,
+    "scale": 0.26,
+    "dur": 0.4,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "dash": {
+    "file": "packs/hero-knight-2/Dash.png",
+    "n": 4,
+    "fw": 140,
+    "fh": 140,
+    "ax": 70.0,
+    "ay": 83,
+    "scale": 0.26,
+    "dur": 0.286,
+    "loop": false,
     "flip": false,
     "pixel": true
    }
@@ -1102,6 +1270,32 @@
     "loop": true,
     "flip": false,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/huntress-2/Jump.png",
+    "n": 2,
+    "fw": 100,
+    "fh": 100,
+    "ax": 51.0,
+    "ay": 67,
+    "scale": 0.2483,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/huntress-2/Fall.png",
+    "n": 2,
+    "fw": 100,
+    "fh": 100,
+    "ax": 51.0,
+    "ay": 67,
+    "scale": 0.2483,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
    }
   },
   "medieval-warrior-pack-2": {
@@ -1294,6 +1488,63 @@
     "loop": true,
     "flip": false,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/medieval-warrior-pack-2/Jump.png",
+    "n": 2,
+    "fw": 150,
+    "fh": 150,
+    "ax": 75.0,
+    "ay": 95,
+    "scale": 0.2733,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/medieval-warrior-pack-2/Fall.png",
+    "n": 2,
+    "fw": 150,
+    "fh": 150,
+    "ax": 75.0,
+    "ay": 95,
+    "scale": 0.2733,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "attack3": {
+    "file": "packs/medieval-warrior-pack-2/Attack3.png",
+    "n": 4,
+    "fw": 150,
+    "fh": 150,
+    "ax": 75.0,
+    "ay": 95,
+    "scale": 0.2733,
+    "dur": 0.333,
+    "loop": false,
+    "flip": false,
+    "pixel": true,
+    "tip": [
+     [
+      98.8,
+      -51.2
+     ],
+     [
+      106.1,
+      -51.2
+     ],
+     [
+      237.8,
+      -76.8
+     ],
+     [
+      237.8,
+      -76.8
+     ]
+    ]
    }
   },
   "medieval-warrior-pack-3": {
@@ -1490,6 +1741,67 @@
     "loop": true,
     "flip": false,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/medieval-warrior-pack-3/Jump.png",
+    "n": 2,
+    "fw": 135,
+    "fh": 135,
+    "ax": 67.0,
+    "ay": 86,
+    "scale": 0.2533,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/medieval-warrior-pack-3/Fall.png",
+    "n": 2,
+    "fw": 135,
+    "fh": 135,
+    "ax": 67.0,
+    "ay": 86,
+    "scale": 0.2533,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "attack3": {
+    "file": "packs/medieval-warrior-pack-3/Attack3.png",
+    "n": 5,
+    "fw": 135,
+    "fh": 135,
+    "ax": 67.0,
+    "ay": 86,
+    "scale": 0.2533,
+    "dur": 0.417,
+    "loop": false,
+    "flip": false,
+    "pixel": true,
+    "tip": [
+     [
+      43.4,
+      -94.7
+     ],
+     [
+      43.4,
+      -86.8
+     ],
+     [
+      43.4,
+      -94.7
+     ],
+     [
+      256.6,
+      -130.3
+     ],
+     [
+      165.8,
+      -3.9
+     ]
+    ]
    }
   },
   "fantasy-warrior": {
@@ -1734,6 +2046,79 @@
     "loop": true,
     "flip": true,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/fantasy-warrior/Jump.png",
+    "n": 3,
+    "fw": 162,
+    "fh": 162,
+    "ax": 86.0,
+    "ay": 101,
+    "scale": 0.2848,
+    "dur": 0.3,
+    "loop": false,
+    "flip": true,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/fantasy-warrior/Fall.png",
+    "n": 3,
+    "fw": 162,
+    "fh": 162,
+    "ax": 86.0,
+    "ay": 101,
+    "scale": 0.2848,
+    "dur": 0.3,
+    "loop": false,
+    "flip": true,
+    "pixel": true
+   },
+   "attack3": {
+    "file": "packs/fantasy-warrior/Attack3.png",
+    "n": 8,
+    "fw": 162,
+    "fh": 162,
+    "ax": 86.0,
+    "ay": 101,
+    "scale": 0.2848,
+    "dur": 0.667,
+    "loop": false,
+    "flip": true,
+    "pixel": true,
+    "tip": [
+     [
+      203.6,
+      -210.7
+     ],
+     [
+      140.4,
+      -259.8
+     ],
+     [
+      129.9,
+      -24.6
+     ],
+     [
+      207.2,
+      -191.4
+     ],
+     [
+      224.7,
+      -217.7
+     ],
+     [
+      105.3,
+      -89.5
+     ],
+     [
+      200.1,
+      -207.2
+     ],
+     [
+      59.7,
+      -3.5
+     ]
+    ]
    }
   },
   "huntress": {
@@ -1950,6 +2335,75 @@
     "loop": true,
     "flip": false,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/huntress/Jump.png",
+    "n": 2,
+    "fw": 150,
+    "fh": 150,
+    "ax": 77.0,
+    "ay": 97,
+    "scale": 0.28,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/huntress/Fall.png",
+    "n": 2,
+    "fw": 150,
+    "fh": 150,
+    "ax": 77.0,
+    "ay": 97,
+    "scale": 0.28,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "attack3": {
+    "file": "packs/huntress/Attack3.png",
+    "n": 7,
+    "fw": 150,
+    "fh": 150,
+    "ax": 77.0,
+    "ay": 97,
+    "scale": 0.28,
+    "dur": 0.583,
+    "loop": false,
+    "flip": false,
+    "pixel": true,
+    "tip": [
+     [
+      82.1,
+      -3.6
+     ],
+     [
+      82.1,
+      -14.3
+     ],
+     [
+      85.7,
+      -60.7
+     ],
+     [
+      21.4,
+      -82.1
+     ],
+     [
+      14.3,
+      -82.1
+     ],
+     [
+      17.9,
+      -82.1
+     ],
+     [
+      78.6,
+      -71.4
+     ]
+    ]
    }
   },
   "hero-knight": {
@@ -2188,6 +2642,32 @@
     "scale": 0.329,
     "dur": 1.1,
     "loop": true,
+    "flip": true,
+    "pixel": true
+   },
+   "jump": {
+    "file": "packs/hero-knight/Jump.png",
+    "n": 3,
+    "fw": 180,
+    "fh": 180,
+    "ax": 96.5,
+    "ay": 114,
+    "scale": 0.329,
+    "dur": 0.3,
+    "loop": false,
+    "flip": true,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/hero-knight/Fall.png",
+    "n": 3,
+    "fw": 180,
+    "fh": 180,
+    "ax": 96.5,
+    "ay": 114,
+    "scale": 0.329,
+    "dur": 0.3,
+    "loop": false,
     "flip": true,
     "pixel": true
    }
@@ -2670,6 +3150,32 @@
     "loop": true,
     "flip": false,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/medieval-king-pack/Jump.png",
+    "n": 2,
+    "fw": 155,
+    "fh": 155,
+    "ax": 66.5,
+    "ay": 116,
+    "scale": 0.4909,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/medieval-king-pack/Fall.png",
+    "n": 2,
+    "fw": 155,
+    "fh": 155,
+    "ax": 66.5,
+    "ay": 116,
+    "scale": 0.4909,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
    }
   },
   "medieval-king-pack-2": {
@@ -2862,6 +3368,63 @@
     "loop": true,
     "flip": false,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/medieval-king-pack-2/Jump.png",
+    "n": 2,
+    "fw": 160,
+    "fh": 111,
+    "ax": 81.0,
+    "ay": 105,
+    "scale": 0.3375,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/medieval-king-pack-2/Fall.png",
+    "n": 2,
+    "fw": 160,
+    "fh": 111,
+    "ax": 81.0,
+    "ay": 105,
+    "scale": 0.3375,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "attack3": {
+    "file": "packs/medieval-king-pack-2/Attack3.png",
+    "n": 4,
+    "fw": 160,
+    "fh": 111,
+    "ax": 81.0,
+    "ay": 105,
+    "scale": 0.3375,
+    "dur": 0.333,
+    "loop": false,
+    "flip": false,
+    "pixel": true,
+    "tip": [
+     [
+      8.9,
+      -47.4
+     ],
+     [
+      11.9,
+      -3.0
+     ],
+     [
+      213.3,
+      -134.8
+     ],
+     [
+      127.4,
+      -4.4
+     ]
+    ]
    }
   },
   "wizard-pack": {
@@ -3118,6 +3681,32 @@
     "loop": true,
     "flip": false,
     "pixel": true
+   },
+   "jump": {
+    "file": "packs/wizard-pack/Jump.png",
+    "n": 2,
+    "fw": 231,
+    "fh": 190,
+    "ax": 110.5,
+    "ay": 141,
+    "scale": 0.4914,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/wizard-pack/Fall.png",
+    "n": 2,
+    "fw": 231,
+    "fh": 190,
+    "ax": 110.5,
+    "ay": 141,
+    "scale": 0.4914,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
    }
   },
   "evil-wizard-2": {
@@ -3372,6 +3961,32 @@
     "scale": 0.5843,
     "dur": 0.8,
     "loop": true,
+    "flip": false,
+    "pixel": true
+   },
+   "jump": {
+    "file": "packs/evil-wizard-2/Jump.png",
+    "n": 2,
+    "fw": 250,
+    "fh": 250,
+    "ax": 136.5,
+    "ay": 167,
+    "scale": 0.5843,
+    "dur": 0.2,
+    "loop": false,
+    "flip": false,
+    "pixel": true
+   },
+   "fall": {
+    "file": "packs/evil-wizard-2/Fall.png",
+    "n": 2,
+    "fw": 250,
+    "fh": 250,
+    "ax": 136.5,
+    "ay": 167,
+    "scale": 0.5843,
+    "dur": 0.2,
+    "loop": false,
     "flip": false,
     "pixel": true
    }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flame/cache.dart';
 import 'package:flame/components.dart';
@@ -91,6 +92,26 @@ class SpriteLibrary {
 
   BakedAnim anim(String char, String name) => chars[char]![name]!;
 
+  bool has(String char, String name) => chars[char]?.containsKey(name) ?? false;
+
+  /// Packs differ in what they ship; the combo clips ask for jump, fall,
+  /// attack3 and dash and get the nearest core strip when one is missing.
+  static const _fallbacks = {
+    'jump': 'hit',
+    'fall': 'hit',
+    'attack3': 'heavy',
+    'dash': 'walk',
+  };
+
+  BakedAnim animOr(String char, String name) {
+    final anims = chars[char]!;
+    final a = anims[name];
+    if (a != null) return a;
+    final fb = _fallbacks[name];
+    if (fb != null && anims.containsKey(fb)) return anims[fb]!;
+    return anims['idle']!;
+  }
+
   static Future<SpriteLibrary> load(Images images) async {
     final meta = jsonDecode(await rootBundle.loadString('assets/images/meta.json'))
         as Map<String, dynamic>;
@@ -149,6 +170,56 @@ class SpriteLibrary {
 
     final arena =
         Sprite(await images.load((meta['arena'] as Map)['file'] as String));
+
+    // Hand-made combo strips (assets/images/combos.json, written by
+    // tool/import_combos.py). Optional: without it every combo is composed
+    // from the pack's core strips.
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    String? combosJson;
+    if (manifest.listAssets().contains('assets/images/combos.json')) {
+      combosJson = await rootBundle.loadString('assets/images/combos.json');
+    }
+    if (combosJson != null) {
+      final cmeta = jsonDecode(combosJson) as Map<String, dynamic>;
+      for (final ch in cmeta.entries) {
+        final anims = chars[ch.key];
+        if (anims == null) continue;
+        for (final c in (ch.value as Map<String, dynamic>).entries) {
+          final m = c.value as Map<String, dynamic>;
+          final img = await images.load(m['file'] as String);
+          final fw = (m['fw'] as num).toDouble(), fh = (m['fh'] as num).toDouble();
+          final fps = (m['fps'] as num?)?.toDouble() ?? 12;
+          for (final stage in ['enter', 'loop', 'exit']) {
+            final range = m[stage] as List?;
+            if (range == null) continue;
+            final a = (range[0] as num).toInt(), b = (range[1] as num).toInt();
+            if (b <= a) continue;
+            anims['combo:${c.key}:$stage'] = BakedAnim(
+              frames: [
+                for (var i = a; i < b; i++)
+                  Sprite(img, srcPosition: Vector2(i * fw, 0), srcSize: Vector2(fw, fh)),
+              ],
+              duration: (b - a) / fps,
+              loop: false,
+              fw: fw,
+              fh: fh,
+              ax: (m['ax'] as num).toDouble(),
+              ay: (m['ay'] as num).toDouble(),
+              scale: (m['scale'] as num).toDouble(),
+              hand: const [],
+              tip: m['tip'] == null
+                  ? null
+                  : [
+                      for (final f in (m['tip'] as List).sublist(a, math.min(b, (m['tip'] as List).length)))
+                        [for (final x in f as List) (x as num).toDouble()],
+                    ],
+              flip: (m['flip'] as bool?) ?? false,
+              pixel: (m['pixel'] as bool?) ?? true,
+            );
+          }
+        }
+      }
+    }
 
     // Only a missing atlas is tolerated (effects fall back to the drawn
     // versions); a broken entry or PNG must fail loudly.

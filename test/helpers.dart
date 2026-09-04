@@ -20,6 +20,7 @@ Future<ShadowGame> bootGame(WidgetTester tester) async {
                 ShadowGame.overlayArmory,
                 ShadowGame.overlayResult,
                 ShadowGame.overlayPause,
+                ShadowGame.overlayDojo,
               ])
                 k: (context, g) => const SizedBox(),
             },

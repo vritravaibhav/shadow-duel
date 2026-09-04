@@ -3,15 +3,16 @@ import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 
+import 'combos.dart';
 import 'shadow_game.dart';
 import 'sprites.dart';
 import 'weapons.dart';
 
-enum FState { idle, walk, attack, hit, dead, victory }
+export 'weapons.dart' show GuardZone;
 
-/// What a fighter is covering: a high guard shields head and body, a low
-/// guard body and feet.
-enum GuardZone { none, high, low }
+/// [combo] is a held two-stick combination (see combos.dart): attacks loop a
+/// swing per cycle while held, blocks and steps hold their pose.
+enum FState { idle, walk, attack, combo, hit, dead, victory }
 
 /// A damage-over-time effect (bleed, burn, poison).
 class Dot {
@@ -61,6 +62,21 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
   bool hitApplied = false;
   double flashT = 0, blockFlashT = 0;
 
+  /// The held two-stick combo, its clip clock and this cycle's attack.
+  late final ComboPlayer comboPlayer = ComboPlayer(lib, charKey);
+  MoveSpec? comboMove;
+
+  /// Set by the game each frame: a skull smash started now is unblockable.
+  bool smashArmed = false;
+
+  /// Fired at the start of every combo cycle (a swing, a held block, a step).
+  void Function(Combo combo, bool smash)? onComboCycle;
+
+  /// A parry covers only its exact zone but takes nothing and staggers the
+  /// attacker; [guardFactor] is the damage let through by a plain block.
+  bool parrying = false;
+  double guardFactor = .25;
+
   // Status effects.
   final List<Dot> dots = [];
   double slowT = 0;
@@ -95,17 +111,23 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
 
   /// Whether a blow to [zone] is turned by the current guard.
   bool guards(Zone zone) {
-    if (!alive || h > 0) return false;
+    if (!alive || (h > 0 && state != FState.combo)) return false;
     switch (guardZone) {
       case GuardZone.none:
         return false;
       case GuardZone.high:
-        return zone != Zone.feet;
+        return parrying ? zone == Zone.head : zone != Zone.feet;
+      case GuardZone.mid:
+        return zone == Zone.body;
       case GuardZone.low:
-        return zone != Zone.head;
+        return parrying ? zone == Zone.feet : zone != Zone.head;
     }
   }
-  bool get attacking => state == FState.attack;
+
+  Combo? get combo => comboPlayer.combo;
+  bool get attacking =>
+      state == FState.attack ||
+      (state == FState.combo && combo?.kind == ComboKind.attack && !comboPlayer.exiting);
   bool get burning => dots.any((d) => d.color == burnColor);
   bool get poisoned => dots.any((d) => d.color == poisonColor);
   double get damageTakenMult =>
@@ -139,7 +161,64 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     stunT = 0;
     guaranteedCrit = false;
     guardZone = GuardZone.none;
+    _dropCombo();
+    smashArmed = false;
     _trail.clear();
+  }
+
+  void _dropCombo() {
+    comboPlayer.stop();
+    comboMove = null;
+    parrying = false;
+    guardFactor = .25;
+    if (state == FState.combo) {
+      state = FState.idle;
+      stateT = 0;
+    }
+  }
+
+  /// The combo the sticks hold right now (null when either is centred),
+  /// called every frame. A new combo waits for the current one's exit; an
+  /// attack always finishes the swing it started.
+  void holdCombo(Combo? c) {
+    if (!alive || stunned) return;
+    if (state != FState.combo) {
+      if (c == null || state != FState.idle && state != FState.walk) return;
+      comboPlayer.start(c);
+      state = FState.combo;
+      stateT = 0;
+      hitApplied = false;
+      if (comboPlayer.stage == ComboStage.loop) _comboCycle();
+      return;
+    }
+    final cur = comboPlayer.combo!;
+    if (c == cur) {
+      // Re-held before the swing ended: keep looping.
+      if (comboPlayer.released && comboPlayer.next == null && !comboPlayer.exiting) {
+        comboPlayer.released = false;
+      }
+      return;
+    }
+    comboPlayer.release(to: c, now: cur.kind != ComboKind.attack);
+  }
+
+  /// A new loop cycle: attacks swing again, everything else just reports.
+  void _comboCycle() {
+    final c = comboPlayer.combo;
+    if (c == null) return;
+    hitApplied = false;
+    if (c.kind == ComboKind.attack) {
+      swingId++;
+      final clip = comboPlayer.clip!;
+      final (ws, we) = clip.window(lib, charKey);
+      final smash = c.isSmash && smashArmed;
+      comboMove = moveFor(c, weapon, clip.duration(ComboStage.loop, lib, charKey), ws, we, smash: smash);
+      onSwing?.call(comboMove!.kind);
+      onComboCycle?.call(c, smash);
+    } else {
+      comboMove = null;
+      onComboCycle?.call(c, false);
+    }
   }
 
   /// Cure every damage-over-time and chill effect.
@@ -160,6 +239,7 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     }
     pendingKind = null;
     currentMove = null;
+    _dropCombo();
     state = FState.hit;
     stateT = 0;
     stunMult = 1.2;
@@ -206,7 +286,8 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
   }
 
   void startMove(MoveKind k) {
-    if (!alive || stunned || state == FState.dead || state == FState.victory || state == FState.hit) {
+    if (!alive || stunned || state == FState.dead || state == FState.victory || state == FState.hit ||
+        state == FState.combo) {
       return;
     }
     if (state == FState.attack && currentMove != null) {
@@ -238,10 +319,11 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
       f();
     }
     var adt = slowed && state != FState.dead ? dt * 0.6 : dt;
-    if (hasteT > 0 && state == FState.attack) adt *= 1.4;
+    if (hasteT > 0 && attacking) adt *= 1.4;
     if (stunT > 0 && alive) {
       stunT = math.max(0, stunT - dt);
       if (state != FState.hit) {
+        _dropCombo();
         state = FState.hit;
         stateT = 0;
       }
@@ -264,6 +346,7 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
       dots.removeWhere((d) => d.left <= 0);
       hp = math.max(0, hp - tick);
       if (hp <= 0) {
+        _dropCombo();
         state = FState.dead;
         stateT = 0;
         dots.clear();
@@ -271,7 +354,11 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
       }
     }
 
-    if (h > 0 || vh != 0) {
+    if (state == FState.combo) {
+      // The clip owns the height; a knock-up ends the combo first.
+      h = comboPlayer.hop;
+      vh = 0;
+    } else if (h > 0 || vh != 0) {
       h += vh * dt;
       vh -= 1600 * dt;
       if (h <= 0) {
@@ -298,6 +385,26 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
         final p = pendingKind;
         pendingKind = null;
         if (p != null) startMove(p);
+      }
+    } else if (state == FState.combo) {
+      final ev = comboPlayer.advance(adt);
+      if (ev == ComboEvent.finished || !comboPlayer.active) {
+        _dropCombo();
+        h = 0;
+        guardZone = GuardZone.none;
+      } else {
+        if (ev == ComboEvent.cycle) _comboCycle();
+        final c = comboPlayer.combo!;
+        vx += facing * comboPlayer.dxRate * speedMult * moveScale;
+        h = comboPlayer.hop;
+        final exiting = comboPlayer.exiting;
+        guardZone = exiting ? GuardZone.none : c.guard;
+        parrying = !exiting && c.parry;
+        guardFactor = c.guardFactor;
+        final m = comboMove;
+        if (m != null && !hitApplied && !exiting && comboPlayer.inWindow(m.winStart, m.winEnd)) {
+          _tryHit(m);
+        }
       }
     } else if (state == FState.hit) {
       if (stateT >= lib.anim(charKey, 'hit').duration * stunMult && h <= 0) {
@@ -358,7 +465,15 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
       dmg *= 1.6;
     }
     if (auraT > 0) from.addDot(5, 3, burnColor);
-    if (blocked) dmg *= 0.25;
+    if (blocked && parrying) {
+      // A parry: nothing gets through and the attacker is thrown off balance.
+      blockFlashT = .35;
+      from.kvx = -dir * 170;
+      from.stunT = math.max(from.stunT, .45);
+      game.onStrike(from, this, m, 0, true, false, false, parried: true);
+      return;
+    }
+    if (blocked) dmg *= guardFactor;
     final before = dmg;
     dmg = _absorb(dmg);
     // A shield that soaks the whole hit leaves no flinch, just a flash.
@@ -380,6 +495,7 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
       }
       pendingKind = null;
       currentMove = null;
+      _dropCombo();
       state = FState.hit;
       stateT = 0;
       stunMult = from.weapon.special == Special.shock ? 1.6 : 1.0;
@@ -422,6 +538,9 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
         final m = currentMove!;
         final ba = lib.anim(charKey, m.animName);
         return (ba, ba.frameAt(stateT / m.duration));
+      case FState.combo:
+        final cs = comboPlayer.sample();
+        return (cs.anim, cs.frame);
       case FState.hit:
         final ba = lib.anim(charKey, 'hit');
         return (ba, ba.frameAt(stateT / (ba.duration * stunMult)));
@@ -478,6 +597,12 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
 
     canvas.save();
     canvas.scale(facing * (ba.flip ? -1 : 1) * s, s);
+    if (state == FState.combo) {
+      // Crouch (squash at the feet) and lean (shear toward the enemy).
+      final sq = comboPlayer.squash;
+      canvas.scale(1 + (1 - sq) * .5, sq);
+      canvas.skew(-comboPlayer.lean, 0);
+    }
     ba.frames[fi].render(
       canvas,
       position: Vector2(-ba.ax / ba.scale, -ba.ay / ba.scale),
@@ -503,9 +628,15 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     canvas.restore();
 
     final tips = ba.tip;
-    if (tips != null && state == FState.attack && currentMove != null) {
-      final u = stateT / currentMove!.duration;
-      if (u >= currentMove!.winStart - 0.22 && u <= currentMove!.winEnd + 0.12) {
+    if (tips != null) {
+      var swinging = false;
+      if (state == FState.attack && currentMove != null) {
+        final u = stateT / currentMove!.duration;
+        swinging = u >= currentMove!.winStart - 0.22 && u <= currentMove!.winEnd + 0.12;
+      } else if (state == FState.combo && comboMove != null) {
+        swinging = comboPlayer.inWindow(comboMove!.winStart, comboMove!.winEnd, before: .22, after: .12);
+      }
+      if (swinging) {
         final tip = tips[math.min(fi, tips.length - 1)];
         _trail.add((
           Offset(position.x + tip[0] * facing * s, position.y + tip[1] * s),

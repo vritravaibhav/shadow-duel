@@ -1,0 +1,4114 @@
+[
+ {
+  "id": "up_up",
+  "name": "SKULL SMASH",
+  "kind": "attack",
+  "left": "up",
+  "right": "up",
+  "leftGlyph": "▲",
+  "rightGlyph": "▲",
+  "desc": "Stand tall and aim high, leap and smash down. Lands on the head. Unblockable while the smash is charged.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": true,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 30.0,
+     "dx": 10.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "heavy",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 58.0,
+     "dx": 8.0,
+     "lean": 0.25,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "fall",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "up_upfwd",
+  "name": "HIGH OVERHEAD",
+  "kind": "attack",
+  "left": "up",
+  "right": "upfwd",
+  "leftGlyph": "▲",
+  "rightGlyph": "◥",
+  "desc": "Stand tall and aim high, bring the blade over the top. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "heavy",
+     "speed": 0.95,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 16.0,
+     "dx": 0.0,
+     "lean": 0.2,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "up_fwd",
+  "name": "HEAD CUT",
+  "kind": "attack",
+  "left": "up",
+  "right": "fwd",
+  "leftGlyph": "▲",
+  "rightGlyph": "►",
+  "desc": "Stand tall and aim high, cut straight through. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "slash",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 6.0,
+     "dx": 0.0,
+     "lean": 0.05,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "up_downfwd",
+  "name": "HIGH SWEEP",
+  "kind": "attack",
+  "left": "up",
+  "right": "downfwd",
+  "leftGlyph": "▲",
+  "rightGlyph": "◢",
+  "desc": "Stand tall and aim high, sweep the blade low. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.1,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 6.0,
+     "dx": 0.0,
+     "lean": 0.3,
+     "squash": 0.9450000000000001,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "up_down",
+  "name": "HIGH KICK",
+  "kind": "attack",
+  "left": "up",
+  "right": "down",
+  "leftGlyph": "▲",
+  "rightGlyph": "▼",
+  "desc": "Stand tall and aim high, drive a kick in. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 6.0,
+     "dx": 0.0,
+     "lean": 0.05,
+     "squash": 1.008,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "up_downback",
+  "name": "LOW GUARD STANCE",
+  "kind": "advance",
+  "left": "up",
+  "right": "downback",
+  "leftGlyph": "▲",
+  "rightGlyph": "◣",
+  "desc": "Hold your ground standing tall with the blade held low: covers the legs and body while closing in.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "idle",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.05,
+     "squash": 0.9974999999999999,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "up_back",
+  "name": "GUARD STANCE",
+  "kind": "advance",
+  "left": "up",
+  "right": "back",
+  "leftGlyph": "▲",
+  "rightGlyph": "◄",
+  "desc": "Hold your ground standing tall with the blade held ready: covers the body while closing in.",
+  "zone": null,
+  "guard": "body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "idle",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.05,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "up_upback",
+  "name": "HIGH GUARD STANCE",
+  "kind": "advance",
+  "left": "up",
+  "right": "upback",
+  "leftGlyph": "▲",
+  "rightGlyph": "◤",
+  "desc": "Hold your ground standing tall with the blade held high: covers the head and body while closing in.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.15000000000000002,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "idle",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 1.05,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upfwd_up",
+  "name": "RISING SMASH",
+  "kind": "attack",
+  "left": "upfwd",
+  "right": "up",
+  "leftGlyph": "◥",
+  "rightGlyph": "▲",
+  "desc": "Spring in and rise, leap and smash down. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "jump",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 14.0,
+     "dx": 18.0,
+     "lean": 0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 30.0,
+     "dx": 10.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "heavy",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 74.0,
+     "dx": 48.0,
+     "lean": 0.4,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "fall",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upfwd_upfwd",
+  "name": "RISING OVERHEAD",
+  "kind": "attack",
+  "left": "upfwd",
+  "right": "upfwd",
+  "leftGlyph": "◥",
+  "rightGlyph": "◥",
+  "desc": "Spring in and rise, bring the blade over the top. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "jump",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 14.0,
+     "dx": 18.0,
+     "lean": 0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "heavy",
+     "speed": 0.95,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 32.0,
+     "dx": 40.0,
+     "lean": 0.35,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upfwd_fwd",
+  "name": "RISING SLASH",
+  "kind": "attack",
+  "left": "upfwd",
+  "right": "fwd",
+  "leftGlyph": "◥",
+  "rightGlyph": "►",
+  "desc": "Spring in and rise, cut straight through. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "jump",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 14.0,
+     "dx": 18.0,
+     "lean": 0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "slash",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 22.0,
+     "dx": 40.0,
+     "lean": 0.2,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upfwd_downfwd",
+  "name": "RISING SWEEP",
+  "kind": "attack",
+  "left": "upfwd",
+  "right": "downfwd",
+  "leftGlyph": "◥",
+  "rightGlyph": "◢",
+  "desc": "Spring in and rise, sweep the blade low. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "jump",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 14.0,
+     "dx": 18.0,
+     "lean": 0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.1,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 22.0,
+     "dx": 40.0,
+     "lean": 0.45,
+     "squash": 0.9,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upfwd_down",
+  "name": "RISING KICK",
+  "kind": "attack",
+  "left": "upfwd",
+  "right": "down",
+  "leftGlyph": "◥",
+  "rightGlyph": "▼",
+  "desc": "Spring in and rise, drive a kick in. Lands on the head.",
+  "zone": "head",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "jump",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 14.0,
+     "dx": 18.0,
+     "lean": 0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 22.0,
+     "dx": 40.0,
+     "lean": 0.2,
+     "squash": 0.96,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upfwd_downback",
+  "name": "LOW GUARD HOP IN",
+  "kind": "advance",
+  "left": "upfwd",
+  "right": "downback",
+  "leftGlyph": "◥",
+  "rightGlyph": "◣",
+  "desc": "Hop in with the blade held low: covers the legs and body while closing in.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 24.0,
+     "dx": 30.0,
+     "lean": 0.1,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "fall",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 26.0,
+     "lean": 0.1,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upfwd_back",
+  "name": "GUARD HOP IN",
+  "kind": "advance",
+  "left": "upfwd",
+  "right": "back",
+  "leftGlyph": "◥",
+  "rightGlyph": "◄",
+  "desc": "Hop in with the blade held ready: covers the body while closing in.",
+  "zone": null,
+  "guard": "body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 24.0,
+     "dx": 30.0,
+     "lean": 0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "fall",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 26.0,
+     "lean": 0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upfwd_upback",
+  "name": "HIGH GUARD HOP IN",
+  "kind": "advance",
+  "left": "upfwd",
+  "right": "upback",
+  "leftGlyph": "◥",
+  "rightGlyph": "◤",
+  "desc": "Hop in with the blade held high: covers the head and body while closing in.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.15000000000000002,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 24.0,
+     "dx": 30.0,
+     "lean": 0.15000000000000002,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "fall",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 26.0,
+     "lean": 0.15000000000000002,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "fwd_up",
+  "name": "LUNGE SMASH",
+  "kind": "attack",
+  "left": "fwd",
+  "right": "up",
+  "leftGlyph": "►",
+  "rightGlyph": "▲",
+  "desc": "Lunge in, leap and smash down. Lands on the body.",
+  "zone": "body",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.6,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 26.0,
+     "lean": 0.2,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 30.0,
+     "dx": 10.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "heavy",
+     "speed": 1.05,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 52.0,
+     "dx": 63.0,
+     "lean": 0.5,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "fall",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "fwd_upfwd",
+  "name": "LUNGE OVERHEAD",
+  "kind": "attack",
+  "left": "fwd",
+  "right": "upfwd",
+  "leftGlyph": "►",
+  "rightGlyph": "◥",
+  "desc": "Lunge in, bring the blade over the top. Lands on the body.",
+  "zone": "body",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.6,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 26.0,
+     "lean": 0.2,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "heavy",
+     "speed": 0.9974999999999999,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 55.0,
+     "lean": 0.44999999999999996,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "fwd_fwd",
+  "name": "LUNGE SLASH",
+  "kind": "attack",
+  "left": "fwd",
+  "right": "fwd",
+  "leftGlyph": "►",
+  "rightGlyph": "►",
+  "desc": "Lunge in, cut straight through. Lands on the body.",
+  "zone": "body",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.6,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 26.0,
+     "lean": 0.2,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "slash",
+     "speed": 1.05,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 55.0,
+     "lean": 0.3,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "fwd_downfwd",
+  "name": "LUNGE SWEEP",
+  "kind": "attack",
+  "left": "fwd",
+  "right": "downfwd",
+  "leftGlyph": "►",
+  "rightGlyph": "◢",
+  "desc": "Lunge in, sweep the blade low. Lands on the body.",
+  "zone": "body",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.6,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 26.0,
+     "lean": 0.2,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.1550000000000002,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 55.0,
+     "lean": 0.55,
+     "squash": 0.9,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "fwd_down",
+  "name": "LUNGE KICK",
+  "kind": "attack",
+  "left": "fwd",
+  "right": "down",
+  "leftGlyph": "►",
+  "rightGlyph": "▼",
+  "desc": "Lunge in, drive a kick in. Lands on the body.",
+  "zone": "body",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.6,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 26.0,
+     "lean": 0.2,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.05,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 55.0,
+     "lean": 0.3,
+     "squash": 0.96,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "fwd_downback",
+  "name": "LOW GUARD ADVANCE",
+  "kind": "advance",
+  "left": "fwd",
+  "right": "downback",
+  "leftGlyph": "►",
+  "rightGlyph": "◣",
+  "desc": "Press forward with the blade held low: covers the legs and body while closing in.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 44.0,
+     "lean": 0.12,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "fwd_back",
+  "name": "GUARD ADVANCE",
+  "kind": "advance",
+  "left": "fwd",
+  "right": "back",
+  "leftGlyph": "►",
+  "rightGlyph": "◄",
+  "desc": "Press forward with the blade held ready: covers the body while closing in.",
+  "zone": null,
+  "guard": "body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 44.0,
+     "lean": 0.12,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "fwd_upback",
+  "name": "HIGH GUARD ADVANCE",
+  "kind": "advance",
+  "left": "fwd",
+  "right": "upback",
+  "leftGlyph": "►",
+  "rightGlyph": "◤",
+  "desc": "Press forward with the blade held high: covers the head and body while closing in.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.15000000000000002,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 44.0,
+     "lean": 0.16999999999999998,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downfwd_up",
+  "name": "DIVING SMASH",
+  "kind": "attack",
+  "left": "downfwd",
+  "right": "up",
+  "leftGlyph": "◢",
+  "rightGlyph": "▲",
+  "desc": "Dive in low, leap and smash down. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.8,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 22.0,
+     "lean": 0.3,
+     "squash": 0.88,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 30.0,
+     "dx": 10.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "heavy",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 52.0,
+     "dx": 56.0,
+     "lean": 0.6000000000000001,
+     "squash": 0.86,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "fall",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downfwd_upfwd",
+  "name": "DIVING OVERHEAD",
+  "kind": "attack",
+  "left": "downfwd",
+  "right": "upfwd",
+  "leftGlyph": "◢",
+  "rightGlyph": "◥",
+  "desc": "Dive in low, bring the blade over the top. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.8,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 22.0,
+     "lean": 0.3,
+     "squash": 0.88,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "heavy",
+     "speed": 0.95,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 48.0,
+     "lean": 0.55,
+     "squash": 0.86,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downfwd_fwd",
+  "name": "DIVING SLASH",
+  "kind": "attack",
+  "left": "downfwd",
+  "right": "fwd",
+  "leftGlyph": "◢",
+  "rightGlyph": "►",
+  "desc": "Dive in low, cut straight through. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.8,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 22.0,
+     "lean": 0.3,
+     "squash": 0.88,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "slash",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 48.0,
+     "lean": 0.4,
+     "squash": 0.86,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downfwd_downfwd",
+  "name": "DIVING SWEEP",
+  "kind": "attack",
+  "left": "downfwd",
+  "right": "downfwd",
+  "leftGlyph": "◢",
+  "rightGlyph": "◢",
+  "desc": "Dive in low, sweep the blade low. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.8,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 22.0,
+     "lean": 0.3,
+     "squash": 0.88,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.1,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 48.0,
+     "lean": 0.65,
+     "squash": 0.774,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downfwd_down",
+  "name": "DIVING KICK",
+  "kind": "attack",
+  "left": "downfwd",
+  "right": "down",
+  "leftGlyph": "◢",
+  "rightGlyph": "▼",
+  "desc": "Dive in low, drive a kick in. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "walk",
+     "speed": 1.8,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 22.0,
+     "lean": 0.3,
+     "squash": 0.88,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 48.0,
+     "lean": 0.4,
+     "squash": 0.8256,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downfwd_downback",
+  "name": "LOW GUARD SLIDE IN",
+  "kind": "advance",
+  "left": "downfwd",
+  "right": "downback",
+  "leftGlyph": "◢",
+  "rightGlyph": "◣",
+  "desc": "Slide in low with the blade held low: covers the legs and body while closing in.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 50.0,
+     "lean": 0.28,
+     "squash": 0.7979999999999999,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downfwd_back",
+  "name": "GUARD SLIDE IN",
+  "kind": "advance",
+  "left": "downfwd",
+  "right": "back",
+  "leftGlyph": "◢",
+  "rightGlyph": "◄",
+  "desc": "Slide in low with the blade held ready: covers the body while closing in.",
+  "zone": null,
+  "guard": "body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 50.0,
+     "lean": 0.28,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downfwd_upback",
+  "name": "HIGH GUARD SLIDE IN",
+  "kind": "advance",
+  "left": "downfwd",
+  "right": "upback",
+  "leftGlyph": "◢",
+  "rightGlyph": "◤",
+  "desc": "Slide in low with the blade held high: covers the head and body while closing in.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.15000000000000002,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 50.0,
+     "lean": 0.33,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "down_up",
+  "name": "STOMP",
+  "kind": "attack",
+  "left": "down",
+  "right": "up",
+  "leftGlyph": "▼",
+  "rightGlyph": "▲",
+  "desc": "Drop low, leap and smash down. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.9,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 30.0,
+     "dx": 10.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "heavy",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 52.0,
+     "dx": 8.0,
+     "lean": 0.30000000000000004,
+     "squash": 0.88,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "fall",
+     "speed": 1.2,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "down_upfwd",
+  "name": "LOW OVERHEAD",
+  "kind": "attack",
+  "left": "down",
+  "right": "upfwd",
+  "leftGlyph": "▼",
+  "rightGlyph": "◥",
+  "desc": "Drop low, bring the blade over the top. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.9,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "heavy",
+     "speed": 0.95,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 10.0,
+     "dx": 0.0,
+     "lean": 0.25,
+     "squash": 0.88,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "down_fwd",
+  "name": "LOW SLASH",
+  "kind": "attack",
+  "left": "down",
+  "right": "fwd",
+  "leftGlyph": "▼",
+  "rightGlyph": "►",
+  "desc": "Drop low, cut straight through. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.9,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "slash",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 0.88,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "down_downfwd",
+  "name": "LOW SWEEP",
+  "kind": "attack",
+  "left": "down",
+  "right": "downfwd",
+  "leftGlyph": "▼",
+  "rightGlyph": "◢",
+  "desc": "Drop low, sweep the blade low. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.9,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.1,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.35,
+     "squash": 0.792,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "down_down",
+  "name": "LOW KICK",
+  "kind": "attack",
+  "left": "down",
+  "right": "down",
+  "leftGlyph": "▼",
+  "rightGlyph": "▼",
+  "desc": "Drop low, drive a kick in. Lands on the legs.",
+  "zone": "legs",
+  "guard": null,
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 0.9,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 0.8448,
+     "hold": 0.0,
+     "strike": true
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "down_downback",
+  "name": "LOW GUARD CROUCH",
+  "kind": "advance",
+  "left": "down",
+  "right": "downback",
+  "leftGlyph": "▼",
+  "rightGlyph": "◣",
+  "desc": "Hold your ground in a crouch with the blade held low: covers the legs and body while closing in.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "idle",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.08,
+     "squash": 0.817,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "down_back",
+  "name": "GUARD CROUCH",
+  "kind": "advance",
+  "left": "down",
+  "right": "back",
+  "leftGlyph": "▼",
+  "rightGlyph": "◄",
+  "desc": "Hold your ground in a crouch with the blade held ready: covers the body while closing in.",
+  "zone": null,
+  "guard": "body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "idle",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.08,
+     "squash": 0.86,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "down_upback",
+  "name": "HIGH GUARD CROUCH",
+  "kind": "advance",
+  "left": "down",
+  "right": "upback",
+  "leftGlyph": "▼",
+  "rightGlyph": "◤",
+  "desc": "Hold your ground in a crouch with the blade held high: covers the head and body while closing in.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.15000000000000002,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "idle",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.13,
+     "squash": 0.86,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": 0.0,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downback_up",
+  "name": "CROUCH HIGH BLOCK",
+  "kind": "block",
+  "left": "downback",
+  "right": "up",
+  "leftGlyph": "◣",
+  "rightGlyph": "▲",
+  "desc": "Crouch away and raise the guard high. Turns blows to the head and body for a quarter of the damage.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "punch",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "punch",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "punch",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.025,
+     "squash": 0.9199999999999999,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downback_upfwd",
+  "name": "CROUCH HIGH PARRY",
+  "kind": "block",
+  "left": "downback",
+  "right": "upfwd",
+  "leftGlyph": "◣",
+  "rightGlyph": "◥",
+  "desc": "Crouch away and raise the guard high. A parry: it covers only the head but takes no damage and staggers the attacker.",
+  "zone": null,
+  "guard": "head",
+  "parry": true,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "heavy",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "heavy",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.2,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "heavy",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.2,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.025,
+     "squash": 0.9199999999999999,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downback_fwd",
+  "name": "CROUCH MID BLOCK",
+  "kind": "block",
+  "left": "downback",
+  "right": "fwd",
+  "leftGlyph": "◣",
+  "rightGlyph": "►",
+  "desc": "Crouch away and raise the guard level. Turns blows to the body for a quarter of the damage.",
+  "zone": null,
+  "guard": "body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "slash",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "slash",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "slash",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.025,
+     "squash": 0.9199999999999999,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downback_downfwd",
+  "name": "CROUCH LOW PARRY",
+  "kind": "block",
+  "left": "downback",
+  "right": "downfwd",
+  "leftGlyph": "◣",
+  "rightGlyph": "◢",
+  "desc": "Crouch away and raise the guard low. A parry: it covers only the legs but takes no damage and staggers the attacker.",
+  "zone": null,
+  "guard": "legs",
+  "parry": true,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "kick",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.3,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.3,
+     "to": 0.3,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "kick",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.3,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.025,
+     "squash": 0.9199999999999999,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downback_down",
+  "name": "CROUCH LOW BLOCK",
+  "kind": "block",
+  "left": "downback",
+  "right": "down",
+  "leftGlyph": "◣",
+  "rightGlyph": "▼",
+  "desc": "Crouch away and raise the guard low. Turns blows to the legs and body for a quarter of the damage.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "kick",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 0.84,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "kick",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.025,
+     "squash": 0.9199999999999999,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downback_downback",
+  "name": "LOW SLIDE BACK",
+  "kind": "stepBack",
+  "left": "downback",
+  "right": "downback",
+  "leftGlyph": "◣",
+  "rightGlyph": "◣",
+  "desc": "Slide back low away from the enemy. The blade is held low: blows to the legs and body do half damage.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.15,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.2,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": -56.0,
+     "lean": -0.25,
+     "squash": 0.7979999999999999,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downback_back",
+  "name": "SLIDE BACK",
+  "kind": "stepBack",
+  "left": "downback",
+  "right": "back",
+  "leftGlyph": "◣",
+  "rightGlyph": "◄",
+  "desc": "Slide back low away from the enemy.",
+  "zone": null,
+  "guard": "nothing",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.2,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": -56.0,
+     "lean": -0.25,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "downback_upback",
+  "name": "HIGH SLIDE BACK",
+  "kind": "stepBack",
+  "left": "downback",
+  "right": "upback",
+  "leftGlyph": "◣",
+  "rightGlyph": "◤",
+  "desc": "Slide back low away from the enemy. The blade is held high: blows to the head and body do half damage.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.2,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": -56.0,
+     "lean": -0.35,
+     "squash": 0.84,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "back_up",
+  "name": "HIGH BLOCK",
+  "kind": "block",
+  "left": "back",
+  "right": "up",
+  "leftGlyph": "◄",
+  "rightGlyph": "▲",
+  "desc": "Lean away and raise the guard high. Turns blows to the head and body for a quarter of the damage.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "punch",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "punch",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "punch",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "back_upfwd",
+  "name": "HIGH PARRY",
+  "kind": "block",
+  "left": "back",
+  "right": "upfwd",
+  "leftGlyph": "◄",
+  "rightGlyph": "◥",
+  "desc": "Lean away and raise the guard high. A parry: it covers only the head but takes no damage and staggers the attacker.",
+  "zone": null,
+  "guard": "head",
+  "parry": true,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "heavy",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "heavy",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.2,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "heavy",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.2,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "back_fwd",
+  "name": "MID BLOCK",
+  "kind": "block",
+  "left": "back",
+  "right": "fwd",
+  "leftGlyph": "◄",
+  "rightGlyph": "►",
+  "desc": "Lean away and raise the guard level. Turns blows to the body for a quarter of the damage.",
+  "zone": null,
+  "guard": "body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "slash",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "slash",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "slash",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "back_downfwd",
+  "name": "LOW PARRY",
+  "kind": "block",
+  "left": "back",
+  "right": "downfwd",
+  "leftGlyph": "◄",
+  "rightGlyph": "◢",
+  "desc": "Lean away and raise the guard low. A parry: it covers only the legs but takes no damage and staggers the attacker.",
+  "zone": null,
+  "guard": "legs",
+  "parry": true,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "kick",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.3,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.3,
+     "to": 0.3,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "kick",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.3,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "back_down",
+  "name": "LOW BLOCK",
+  "kind": "block",
+  "left": "back",
+  "right": "down",
+  "leftGlyph": "◄",
+  "rightGlyph": "▼",
+  "desc": "Lean away and raise the guard low. Turns blows to the legs and body for a quarter of the damage.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "kick",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "kick",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "back_downback",
+  "name": "LOW STEP BACK",
+  "kind": "stepBack",
+  "left": "back",
+  "right": "downback",
+  "leftGlyph": "◄",
+  "rightGlyph": "◣",
+  "desc": "Step back away from the enemy. The blade is held low: blows to the legs and body do half damage.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.15,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.1,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": -46.0,
+     "lean": -0.12,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "back_back",
+  "name": "STEP BACK",
+  "kind": "stepBack",
+  "left": "back",
+  "right": "back",
+  "leftGlyph": "◄",
+  "rightGlyph": "◄",
+  "desc": "Step back away from the enemy.",
+  "zone": null,
+  "guard": "nothing",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.1,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": -46.0,
+     "lean": -0.12,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "back_upback",
+  "name": "HIGH STEP BACK",
+  "kind": "stepBack",
+  "left": "back",
+  "right": "upback",
+  "leftGlyph": "◄",
+  "rightGlyph": "◤",
+  "desc": "Step back away from the enemy. The blade is held high: blows to the head and body do half damage.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "walk",
+     "speed": 1.1,
+     "reverse": true,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 0.0,
+     "dx": -46.0,
+     "lean": -0.22,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upback_up",
+  "name": "SWAY HIGH BLOCK",
+  "kind": "block",
+  "left": "upback",
+  "right": "up",
+  "leftGlyph": "◤",
+  "rightGlyph": "▲",
+  "desc": "Sway back, standing tall, and raise the guard high. Turns blows to the head and body for a quarter of the damage.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "punch",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "punch",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "punch",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.125,
+     "squash": 1.0150000000000001,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upback_upfwd",
+  "name": "SWAY HIGH PARRY",
+  "kind": "block",
+  "left": "upback",
+  "right": "upfwd",
+  "leftGlyph": "◤",
+  "rightGlyph": "◥",
+  "desc": "Sway back, standing tall, and raise the guard high. A parry: it covers only the head but takes no damage and staggers the attacker.",
+  "zone": null,
+  "guard": "head",
+  "parry": true,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "heavy",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "heavy",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.2,
+     "to": 0.2,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "heavy",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.2,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.125,
+     "squash": 1.0150000000000001,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upback_fwd",
+  "name": "SWAY MID BLOCK",
+  "kind": "block",
+  "left": "upback",
+  "right": "fwd",
+  "leftGlyph": "◤",
+  "rightGlyph": "►",
+  "desc": "Sway back, standing tall, and raise the guard level. Turns blows to the body for a quarter of the damage.",
+  "zone": null,
+  "guard": "body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "slash",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "slash",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "slash",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.125,
+     "squash": 1.0150000000000001,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upback_downfwd",
+  "name": "SWAY LOW PARRY",
+  "kind": "block",
+  "left": "upback",
+  "right": "downfwd",
+  "leftGlyph": "◤",
+  "rightGlyph": "◢",
+  "desc": "Sway back, standing tall, and raise the guard low. A parry: it covers only the legs but takes no damage and staggers the attacker.",
+  "zone": null,
+  "guard": "legs",
+  "parry": true,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "kick",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.3,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.3,
+     "to": 0.3,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "kick",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.3,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.125,
+     "squash": 1.0150000000000001,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upback_down",
+  "name": "SWAY LOW BLOCK",
+  "kind": "block",
+  "left": "upback",
+  "right": "down",
+  "leftGlyph": "◤",
+  "rightGlyph": "▼",
+  "desc": "Sway back, standing tall, and raise the guard low. Turns blows to the legs and body for a quarter of the damage.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "kick",
+     "speed": 2.5,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "kick",
+     "speed": 1.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.15,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.03,
+     "hold": 0.5,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "kick",
+     "speed": 3.0,
+     "reverse": false,
+     "from": 0.15,
+     "to": 0.0,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.125,
+     "squash": 1.0150000000000001,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upback_downback",
+  "name": "LOW HOP BACK",
+  "kind": "stepBack",
+  "left": "upback",
+  "right": "downback",
+  "leftGlyph": "◤",
+  "rightGlyph": "◣",
+  "desc": "Hop back away from the enemy. The blade is held low: blows to the legs and body do half damage.",
+  "zone": null,
+  "guard": "legs and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.15,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 26.0,
+     "dx": -36.0,
+     "lean": -0.15,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "fall",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 14.0,
+     "dx": -34.0,
+     "lean": -0.1,
+     "squash": 0.95,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upback_back",
+  "name": "HOP BACK",
+  "kind": "stepBack",
+  "left": "upback",
+  "right": "back",
+  "leftGlyph": "◤",
+  "rightGlyph": "◄",
+  "desc": "Hop back away from the enemy.",
+  "zone": null,
+  "guard": "nothing",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 26.0,
+     "dx": -36.0,
+     "lean": -0.15,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "fall",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 14.0,
+     "dx": -34.0,
+     "lean": -0.1,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ },
+ {
+  "id": "upback_upback",
+  "name": "HIGH HOP BACK",
+  "kind": "stepBack",
+  "left": "upback",
+  "right": "upback",
+  "leftGlyph": "◤",
+  "rightGlyph": "◤",
+  "desc": "Hop back away from the enemy. The blade is held high: blows to the head and body do half damage.",
+  "zone": null,
+  "guard": "head and body",
+  "parry": false,
+  "smash": false,
+  "clip": {
+   "enter": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.0,
+     "to": 0.25,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.25,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "loop": [
+    {
+     "anim": "jump",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 26.0,
+     "dx": -36.0,
+     "lean": -0.25,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    },
+    {
+     "anim": "fall",
+     "speed": 1.3,
+     "reverse": false,
+     "from": 0.0,
+     "to": 1.0,
+     "hop": 14.0,
+     "dx": -34.0,
+     "lean": -0.2,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ],
+   "exit": [
+    {
+     "anim": "idle",
+     "speed": 4.0,
+     "reverse": false,
+     "from": 0.25,
+     "to": 0.5,
+     "hop": 0.0,
+     "dx": 0.0,
+     "lean": -0.05,
+     "squash": 1.0,
+     "hold": 0.0,
+     "strike": false
+    }
+   ]
+  }
+ }
+]

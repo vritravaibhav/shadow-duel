@@ -6,10 +6,13 @@ import 'package:flame/events.dart';
 import 'package:flutter/painting.dart';
 
 import 'arts.dart';
+import 'combos.dart';
 import 'effects.dart';
 import 'fighter.dart';
 import 'gestures.dart';
 import 'shadow_game.dart';
+import 'tutorial.dart';
+import 'weapons.dart';
 
 class Hud extends PositionComponent with HasGameReference<ShadowGame> {
   Hud() : super(priority: 10);
@@ -149,8 +152,10 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
       c.restore();
     }
 
-    drawText(c, 'STAGE ${game.stage}', const Offset(480, 30),
+    final practice = game.practice;
+    drawText(c, practice == null ? 'STAGE ${game.stage}' : 'DOJO', const Offset(480, 30),
         size: 13, letterSpacing: 5, color: const Color(0x66FFFFFF));
+    if (practice != null) _lessonBanner(c, practice);
 
     // Sword-art badges: draw V / W on the right half to cast.
     final (artV, artW) = Arts.of(game.hero.weapon.id);
@@ -188,8 +193,8 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
     // Skull-smash readiness over the right stick.
     final smashReady = game.smashCd <= 0;
     final pulse = .7 + .3 * math.sin(game.t * 6);
-    final smashC = Offset(kW - 90, kH - 128);
-    drawText(c, smashReady ? 'SMASH ▲▲' : '${game.smashCd.ceil()}s',
+    final smashC = Offset(kW - 90, kH - 136);
+    drawText(c, smashReady ? 'SMASH ▲+▲' : '${game.smashCd.ceil()}s',
         smashC,
         size: smashReady ? 10 : 12,
         letterSpacing: 2,
@@ -197,11 +202,16 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
         opacity: smashReady ? pulse : 1,
         glow: smashReady ? 4 : null);
 
+    // The eight sectors around each stick and the combo the pair spells.
+    _stickRing(c, game.joystick, game.leftDir, const Color(0xFF99E8FF));
+    _stickRing(c, game.attackStick, game.rightDir, const Color(0xFFFF8B7B));
+    _comboLabel(c);
+
     // Controls hint for the first moments of stage 1.
-    if (game.stage == 1 && game.phase == Phase.fighting && game.stageT < 14) {
+    if (game.stage == 1 && practice == null && game.phase == Phase.fighting && game.stageT < 14) {
       const hint = [
-        'LEFT STICK move   ●   RIGHT STICK  ▲ head   ▼ feet   ◄► slash   tap strike',
-        'BOTH STICKS ▲ skull smash   ●   draw V / W to cast   ●   stand still to guard',
+        'BOTH STICKS at the enemy = ATTACK   ●   LEFT height picks head / body / legs   ●   RIGHT picks ▲ smash  ► cut  ▼ kick',
+        'LEFT away + RIGHT at the enemy = BLOCK at that height   ●   both away = STEP BACK   ●   draw V / W to cast',
       ];
       for (var i = 0; i < hint.length; i++) {
         drawText(c, hint[i], Offset(480, 404 + i * 18),
@@ -211,6 +221,78 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
             weight: FontWeight.w600);
       }
     }
+  }
+
+  /// Eight ticks around a stick, the held sector lit, with the enemy's side
+  /// marked so "toward" reads at a glance.
+  void _stickRing(Canvas c, JoystickComponent stick, Dir? held, Color tint) {
+    if (game.phase != Phase.fighting && game.phase != Phase.intro) return;
+    final center = stick.position.toOffset();
+    final r = stick.size.x / 2 + 7;
+    final face = game.hero.facing;
+    for (final d in Dir.values) {
+      final ang = math.atan2(-d.v.toDouble(), d.h * face.toDouble());
+      final on = d == held;
+      c.drawArc(
+        Rect.fromCircle(center: center, radius: r),
+        ang - .28,
+        .56,
+        false,
+        Paint()
+          ..color = on ? tint : const Color(0x40FFFFFF)
+          ..strokeWidth = on ? 4.5 : 2
+          ..strokeCap = StrokeCap.round
+          ..style = PaintingStyle.stroke
+          ..maskFilter = on ? const MaskFilter.blur(BlurStyle.solid, 3) : null,
+      );
+    }
+    // The enemy's side of the stick.
+    drawText(c, face > 0 ? '►' : '◄', Offset(center.dx + face * (r + 13), center.dy),
+        size: 9, letterSpacing: 0, color: const Color(0x80FFFFFF));
+  }
+
+  /// The held combo's name between the sticks, or a nudge when only the
+  /// right stick is held.
+  void _comboLabel(Canvas c) {
+    if (game.phase != Phase.fighting) return;
+    final combo = game.heldCombo;
+    final y = kH - 118.0;
+    if (combo != null) {
+      final col = combo.kind.color;
+      drawText(c, combo.name, Offset(kW / 2, y),
+          size: 15, letterSpacing: 4, color: col, glow: 6, style: FontStyle.italic);
+      drawText(c, combo.kind.title, Offset(kW / 2, y + 15),
+          size: 8, letterSpacing: 3, color: col.withValues(alpha: .7));
+    } else if (game.rightDir != null) {
+      drawText(c, 'HOLD THE LEFT STICK TOO', Offset(kW / 2, y),
+          size: 9, letterSpacing: 3, color: const Color(0x80FFFFFF));
+    }
+  }
+
+  /// The lesson being practised: what to do, the sticks to hold, and how
+  /// far along it is.
+  void _lessonBanner(Canvas c, Practice p) {
+    if (p.finished) return;
+    final lesson = p.lesson;
+    const cx = kW / 2;
+    final box = Rect.fromCenter(center: const Offset(cx, 142), width: 640, height: 66);
+    c.drawRRect(RRect.fromRectAndRadius(box, const Radius.circular(10)),
+        Paint()..color = const Color(0xB3101018));
+    final done = p.lessonDone;
+    final col = done ? const Color(0xFF9CFF6B) : const Color(0xFFFFD75A);
+    drawText(c, 'LESSON ${p.index + 1} / ${Lesson.all.length}   ·   ${lesson.title}', Offset(cx, box.top + 14),
+        size: 11, letterSpacing: 4, color: col, glow: done ? 5 : null);
+    drawText(c, lesson.text, Offset(cx, box.top + 34),
+        size: 11, letterSpacing: .6, weight: FontWeight.w600, color: const Color(0xE6FFFFFF));
+    final face = game.hero.facing > 0;
+    final l = lesson.left, r = lesson.right;
+    final sticks = [
+      if (l != null) 'LEFT ${l.glyph(facingRight: face)}',
+      if (r != null) 'RIGHT ${r.glyph(facingRight: face)}',
+    ].join('   +   ');
+    final progress = '${p.progress} / ${lesson.target} ${lesson.unit}';
+    drawText(c, sticks.isEmpty ? progress : '$sticks      $progress', Offset(cx, box.top + 53),
+        size: 10, letterSpacing: 2, color: const Color(0xB3FFFFFF));
   }
 }
 
@@ -423,6 +505,7 @@ class GuardMarkers extends PositionComponent with HasGameReference<ShadowGame> {
 
   static const _open = Color(0xFFFFC24D);
   static const _covered = Color(0xFF9FDBFF);
+  static const _incoming = Color(0xFFFF5A5A);
 
   /// World space is centred on the viewport in this fixed-resolution camera.
   Offset _screen(Fighter f) =>
@@ -439,37 +522,73 @@ class GuardMarkers extends PositionComponent with HasGameReference<ShadowGame> {
   }
 
   void _draw(Canvas canvas, Fighter f, {required bool labelled}) {
-    if (f.guardZone == GuardZone.none) return;
     final s = 0.80 + f.zPos / kZMax * 0.32;
     final feet = _screen(f);
-    final high = f.guardZone == GuardZone.high;
     final headY = feet.dy - 150 * f.build * s;
+    final bodyY = feet.dy - 84 * f.build * s;
     final footY = feet.dy - 6;
     final pulse = .65 + .35 * math.sin(game.t * 9);
+    double yOf(Zone z) => switch (z) { Zone.head => headY, Zone.body => bodyY, Zone.feet => footY };
 
-    void ring(double y, Color col, double alpha) {
+    void ring(double y, Color col, double alpha, {double width = 2.5}) {
       canvas.drawOval(
         Rect.fromCenter(center: Offset(feet.dx, y), width: 52 * s, height: 13 * s),
         Paint()
           ..color = col.withValues(alpha: alpha)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5,
+          ..strokeWidth = width,
       );
     }
 
-    // Shield on what is covered, target ring on what is open.
-    ring(high ? headY : footY, _covered, .5);
-    ring(high ? footY : headY, _open, .85 * pulse);
-    if (!labelled) return;
-    final y = high ? footY + 16 : headY - 16;
-    const text = 'OPEN';
-    final label = high ? '$text ▼' : '$text ▲';
-    final box = Rect.fromCenter(
-        center: Offset(feet.dx, y), width: label.length * 7.5 + 12, height: 16);
-    canvas.drawRRect(RRect.fromRectAndRadius(box, const Radius.circular(6)),
-        Paint()..color = const Color(0xCC101018));
-    drawText(canvas, label, box.center,
-        size: 11, letterSpacing: 2, color: _open, opacity: pulse, glow: 4);
+    if (f.guardZone != GuardZone.none) {
+      // Shield on what is covered, target ring on what is open.
+      final covered = Zone.values.where(f.guards).toList();
+      final open = Zone.values.where((z) => !f.guards(z)).toList();
+      for (final z in covered) {
+        ring(yOf(z), _covered, f.parrying ? .9 : .5, width: f.parrying ? 3.5 : 2.5);
+      }
+      for (final z in open) {
+        ring(yOf(z), _open, .85 * pulse);
+      }
+      if (labelled && open.isNotEmpty) {
+        // Name the highest open zone with the left-stick height that hits it.
+        final z = open.first;
+        final glyph = switch (z) { Zone.head => '▲', Zone.body => '►', Zone.feet => '▼' };
+        final y = z == Zone.feet ? footY + 16 : yOf(z) - 16;
+        final label = 'OPEN $glyph';
+        final box = Rect.fromCenter(
+            center: Offset(feet.dx, y), width: label.length * 7.5 + 12, height: 16);
+        canvas.drawRRect(RRect.fromRectAndRadius(box, const Radius.circular(6)),
+            Paint()..color = const Color(0xCC101018));
+        drawText(canvas, label, box.center,
+            size: 11, letterSpacing: 2, color: _open, opacity: pulse, glow: 4);
+      }
+    }
+
+    // The enemy's telegraphed blow: where it will land on the hero and the
+    // right-stick height that blocks it.
+    if (!labelled) {
+      final v = game.villain;
+      Zone? incoming = v?.incomingZone;
+      var u = v?.windUpU ?? 0;
+      if (incoming == null && v != null && v.attacking && v.currentMove != null) {
+        final m = v.currentMove!;
+        final su = v.stateT / m.duration;
+        if (su < m.winStart) {
+          incoming = m.zone;
+          u = 1;
+        }
+      }
+      if (incoming != null && f.alive) {
+        final y = yOf(incoming);
+        final flash = .5 + .5 * math.sin(game.t * 22);
+        ring(y, _incoming, .55 + .45 * flash, width: 3 + 2 * u);
+        final glyph = switch (incoming) { Zone.head => '▲', Zone.body => '►', Zone.feet => '▼' };
+        final labelY = incoming == Zone.feet ? footY + 16 : y - 16;
+        drawText(canvas, 'BLOCK $glyph', Offset(feet.dx, labelY),
+            size: 11, letterSpacing: 2, color: _incoming, glow: 5);
+      }
+    }
   }
 }
 

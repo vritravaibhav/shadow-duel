@@ -5,6 +5,7 @@ import 'package:shadow_duel/game/arts.dart';
 import 'package:shadow_duel/game/fighter.dart';
 import 'package:shadow_duel/game/gestures.dart';
 import 'package:shadow_duel/game/shadow_game.dart';
+import 'package:shadow_duel/ui/dojo.dart';
 import 'package:shadow_duel/ui/screens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,6 +50,7 @@ void main() {
                 ShadowGame.overlayArmory: (context, g) => ArmoryScreen(game: g),
                 ShadowGame.overlayResult: (context, g) => ResultScreen(game: g),
                 ShadowGame.overlayPause: (context, g) => PauseScreen(game: g),
+                ShadowGame.overlayDojo: (context, g) => DojoScreen(game: g),
               },
             ),
           ),
@@ -134,6 +136,15 @@ void main() {
     game.showArmory();
     await tester.pump(const Duration(milliseconds: 100));
     await shot(tester, 'armory_game');
+
+    // The dojo: the 8x8 board, then a combo picked out, then the lessons.
+    game.showDojo();
+    await tester.pump(const Duration(milliseconds: 100));
+    await shot(tester, 'dojo_combos');
+
+    await tester.tap(find.text('TUTORIAL'));
+    await tester.pump(const Duration(milliseconds: 100));
+    await shot(tester, 'dojo_tutorial');
     game.pauseEngine();
   });
 }

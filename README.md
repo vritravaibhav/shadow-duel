@@ -60,15 +60,16 @@ lightning and dash after-images.
 
 | Input | Action |
 | --- | --- |
-| Left stick | Move on the isometric floor (x + depth) |
-| Right stick · flick ▲ | Head cut — headshots often, beaten by a high guard |
-| Right stick · flick ▼ | Low sweep at the feet — trips through a high guard |
-| Right stick · flick ◄ ► | Body slash |
-| Right stick · tap | Quick strike |
-| **Both sticks ▲** | Skull smash — unblockable, guaranteed headshot |
+| Left stick **alone** | Move on the isometric floor (x + depth) |
+| **Both sticks held** | One of the 64 combos — see the table above |
+| **Both ▲** | Skull smash — unblockable, guaranteed headshot, long recharge |
+| Hold the pair | Repeat the stroke; releasing plays the recovery |
 | Draw **V** / **W** in the middle of the screen | Sword art (V offense, W defense) |
-| Stand still | High guard: head and body covered, feet open |
 | Card bar | Tap a sword card to draw it |
+
+Directions are read **relative to the enemy**, so the same pair means the same
+combo on either side of them, and a small hysteresis stops a thumb resting on a
+sector boundary from flickering between two combos.
 
 Villains guard too: a **GUARD ▲** marker means the head and body are covered
 (go low), **GUARD ▼** means the feet and body are (go high). Heavy blows and
@@ -86,12 +87,52 @@ the next ready card is drawn — or you fight bare-handed. Putting a card away
 keeps its remaining time. The Armory lists each blade's active and recharge
 times with its stats and both arts.
 
+## Two-stick combos (8 x 8 = 64)
+
+Both sticks read the same eight sectors, **relative to the enemy** — so "forward"
+is always toward them, whichever way you are facing. The pair you hold picks one
+of 64 combos, and the rule is the one thing to learn:
+
+| Left stick | Right stick | You |
+| --- | --- | --- |
+| toward | toward | **attack** — left picks the height, right picks the weapon |
+| away | toward | **block** — right's height is the guard; diagonals **parry** |
+| away | away | **step back**, guard up |
+| toward | away | **guard advance** — close in behind the guard |
+
+Left ▲ + right ▲ is the **skull smash**. Attacks split by the right stick: ▲ goes
+aerial, ▼ kicks and sweeps, sideways swings the blade; the left stick's height
+decides whether it lands on the head, body or feet.
+
+**Hold to keep going.** Every combo has a wind-up, a repeating stroke and a
+recovery. Holding it loops the stroke and each cycle is a fresh swing, so you can
+spam one combo; switching to another plays the first one's exit and the new one's
+entry, so transitions read as deliberate rather than snapping.
+
+Blocks only turn blows aimed where you are covering — a high guard eats head cuts
+and lets sweeps through. The angled guards are **parries**: they cover one exact
+zone, take no damage at all, and stagger the attacker.
+
+## The dojo
+
+**DOJO** on the title screen opens a practice hall with two tabs.
+
+| Combo board | Tutorial |
+| --- | --- |
+| ![combos](screenshots/dojo_combos.png) | ![tutorial](screenshots/dojo_tutorial.png) |
+
+**COMBOS** is the whole 8 x 8 board, coloured by what each pair does. Tap any
+cell to see that combo animate on a loop, with the exact sticks to hold, its
+zone, guard, damage and reach. **TUTORIAL** walks the rules one lesson at a
+time — moving, striking a zone, spamming a hold, blocking, parrying, stepping
+back — each with a goal you finish against a sparring partner who never knocks
+you out.
+
 ## Sound
 
 Chiptune music (menu / battle) and effects for every swing, hit, block,
 headshot, KO, card, art and screen — see [CREDITS.md](CREDITS.md). Audio is
 silent under `flutter test`.
-d
 ## Pausing and the star chase
 
 Tap the **pause button** at the top of the battle screen to freeze the fight;
@@ -162,6 +203,9 @@ performance and both sticks.
 
 - `lib/game/shadow_game.dart` — game core: stages, roster, phases, card deck
   wiring, strike resolution and sword specials
+- `lib/game/combos.dart` — the 64 two-stick combos: direction decoding, the
+  attack/block/step-back/advance rule, per-combo clips and the clip player
+- `lib/game/tutorial.dart` — dojo lessons and their goals
 - `lib/game/cards.dart` — card economy (active window, spend, recharge, switch)
 - `lib/game/weapons.dart` — the 10 swords, specials, move specs
 - `lib/game/progress.dart` — saved progress: furthest stage, per-stage stars,
@@ -173,5 +217,8 @@ performance and both sticks.
 - `lib/game/hud.dart` — health bars, portraits, combo, card bar, gesture zone
 - `lib/ui/screens.dart` — title, endless map, armory (blade rack + display
   case), pause menu, result screens
+- `lib/ui/dojo.dart` — the dojo: 8 x 8 combo board with animated previews, and
+  the tutorial lessons
+- `docs/combos.json` — every combo dumped by `tool/dump_combos.dart`
 - `tool/` — asset pipeline (pack importer, arena/icon baker); not compiled
   into the app

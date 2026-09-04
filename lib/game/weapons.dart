@@ -8,6 +8,11 @@ enum MoveKind { punch, kick, slash, heavy, high }
 /// and feet; heavy blows ignore guards.
 enum Zone { head, body, feet }
 
+/// What a fighter is covering: a high guard shields head and body, a mid
+/// guard the body, a low guard body and feet. A parry (see
+/// [Fighter.parrying]) narrows the cover to the exact zone but takes nothing.
+enum GuardZone { none, high, mid, low }
+
 /// A sword's special ability. Passives apply while equipped; the rest
 /// trigger on hit (or on heavy hit).
 enum Special {

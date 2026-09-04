@@ -26,9 +26,17 @@ ANIMS = {
     'hit': ['TakeHit', 'Hit', 'GetHit'],
     'death': ['Death'],
     'victory': ['Idle'],
+    # Extra strips used by the two-stick combo clips (lib/game/combos.dart);
+    # packs without them fall back to the core set at load time.
+    'jump': ['Jump', 'GoingUp'],
+    'fall': ['Fall', 'GoingDown'],
+    'attack3': ['Attack3', 'Attack4'],
+    'dash': ['Dash'],
 }
-ATTACKS = {'punch', 'kick', 'slash', 'heavy'}
-FPS = dict(idle=10, walk=12, punch=12, kick=12, slash=12, heavy=11, hit=12, death=10, victory=10)
+OPTIONAL = {'jump', 'fall', 'attack3', 'dash'}
+ATTACKS = {'punch', 'kick', 'slash', 'heavy', 'attack3'}
+FPS = dict(idle=10, walk=12, punch=12, kick=12, slash=12, heavy=11, hit=12, death=10, victory=10,
+           jump=10, fall=10, attack3=12, dash=14)
 LOOP = {'idle', 'walk', 'victory'}
 ALPHA_MIN = 40
 
@@ -172,6 +180,8 @@ def main():
         for anim, names in ANIMS.items():
             name, path = sheet_path(folder, names)
             if path is None:
+                if anim in OPTIONAL:
+                    continue
                 raise SystemExit(f'{key}: no sheet for {anim} (tried {names})')
             sheet = Image.open(path).convert('RGBA')
             if anim == 'hit':
