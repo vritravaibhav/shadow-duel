@@ -8,6 +8,7 @@ import 'helpers.dart';
 void main() {
   testWidgets('zone guards, smash recharge and deferred card swaps', (tester) async {
     final game = await bootGame(tester);
+    await buyKatana(game);
     game.startStage(1);
     await untilPhase(tester, game, Phase.fighting);
     final hero = game.hero;

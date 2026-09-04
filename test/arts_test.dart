@@ -10,6 +10,7 @@ void main() {
   testWidgets('sword arts: V fires a projectile that hits, W grants immunity, cooldowns gate recasts',
       (tester) async {
     final game = await bootGame(tester);
+    await buyKatana(game);
     game.startStage(1);
     await untilPhase(tester, game, Phase.fighting);
 

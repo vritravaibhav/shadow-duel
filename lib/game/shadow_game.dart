@@ -14,6 +14,7 @@ import 'fighter.dart';
 import 'gesture_fx.dart';
 import 'gestures.dart';
 import 'hud.dart';
+import 'netplay.dart';
 import 'projectile.dart';
 import 'progress.dart';
 import 'sfx.dart';
@@ -28,6 +29,9 @@ const kH = 540.0;
 const kFloorTop = 96.0;
 const kArenaHalf = 430.0;
 const kZMax = 150.0;
+
+/// The single depth both fighters stand at: the duel is a 2D lane.
+const kLaneZ = 80.0;
 
 enum Phase { menu, intro, fighting, roundOver, gameOver }
 
@@ -71,6 +75,12 @@ class ShadowGame extends FlameGame {
   static const overlayPause = 'pause';
   static const overlayDojo = 'dojo';
 
+  /// The paid Dark section: its hub (auth, paywall, lobby), the in-duel
+  /// chat / voice bar and its own result card.
+  static const overlayDark = 'dark';
+  static const overlayDarkChat = 'darkChat';
+  static const overlayDarkResult = 'darkResult';
+
   /// Villain roster; the infinite map cycles through it with rising tiers.
   static const roster = [
     StageChar('KENJI', 'martial-hero-2'),
@@ -91,15 +101,14 @@ class ShadowGame extends FlameGame {
 
   late final SpriteLibrary sprites;
   final Progress progress = Progress();
-  late final Fighter hero;
+  late Fighter hero;
   VillainFighter? villain;
+
+  /// A live network duel (Dark section), or null in the campaign.
+  NetDuel? net;
+  bool get netplay => net != null;
   late final JoystickComponent joystick;
   late final AttackStick attackStick;
-
-  /// What each stick holds this frame (relative to the enemy) and the combo
-  /// the pair spells, for the HUD.
-  Dir? leftDir, rightDir;
-  Combo? heldCombo;
 
   /// Stand-ins for the sticks, so tests can hold combos the way a thumb does.
   @visibleForTesting
@@ -147,6 +156,11 @@ class ShadowGame extends FlameGame {
   int lastStars = 0;
   bool lastNewStars = false, lastNewCombo = false;
   double lastHpFrac = 0;
+
+  /// The purse after the last duel: what it paid, whether it was the first
+  /// clear of that stage, and the balance before the coins rained in.
+  int lastCoins = 0, coinsBefore = 0;
+  bool lastFirstClear = false;
   final _rng = math.Random();
   bool _fightAnnounced = false;
 
@@ -161,15 +175,7 @@ class ShadowGame extends FlameGame {
     Sfx.music('menu');
     world.add(Backdrop());
 
-    hero = Fighter(
-      charName: 'KAITO',
-      charKey: 'martial-hero',
-      lib: sprites,
-      build: sprites.builds['martial-hero'] ?? 1.0,
-    );
-    hero.resetFor(-180, 78, 1);
-    hero.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
-    hero.onComboCycle = _onHeroCycle;
+    hero = _makeHero('KAITO', 'martial-hero');
     world.add(hero);
 
     joystick = JoystickComponent(
@@ -201,6 +207,154 @@ class ShadowGame extends FlameGame {
     _rebuildDeck();
   }
 
+  Fighter _makeHero(String name, String charKey) {
+    final f = Fighter(
+      charName: name,
+      charKey: charKey,
+      lib: sprites,
+      build: sprites.builds[charKey] ?? 1.0,
+    );
+    f.resetFor(-180, kLaneZ, 1);
+    f.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
+    f.onComboCycle = _onHeroCycle;
+    f.onJump = () => _puff(f);
+    f.onLand = () => _puff(f, land: true);
+    return f;
+  }
+
+  /// Fight as another character (the Dark section's playable roster).
+  void setHeroChar(String name, String charKey) {
+    if (hero.charKey == charKey && hero.charName == name) return;
+    final old = hero;
+    old.removeFromParent();
+    hero = _makeHero(name, charKey);
+    hero.setWeapon(old.weapon);
+    world.add(hero);
+    villain?.opponent = hero;
+    hero.opponent = villain;
+  }
+
+  // ---- Network duels (Dark section) ----------------------------------------
+
+  /// Begin a two-player duel over [duel]. Both sides get the same plain
+  /// blade: no cards, no arts, just steel and the sticks.
+  void startNetDuel(NetDuel duel, {required String myName, required String myChar,
+      required String theirName, required String theirChar}) {
+    overlays.clear();
+    _netSeats = (myName, myChar, theirName, theirChar);
+    darkTrial = null;
+    net = duel;
+    practice = null;
+    villain?.removeFromParent();
+    // The host stands on the left; the guest mirrors that view.
+    final leftName = duel.isHost ? myName : theirName;
+    final leftChar = duel.isHost ? myChar : theirChar;
+    final rightName = duel.isHost ? theirName : myName;
+    final rightChar = duel.isHost ? theirChar : myChar;
+    setHeroChar(leftName, leftChar);
+    final v = RemoteFighter(
+      name: rightName,
+      charKey: rightChar,
+      lib: sprites,
+      build: sprites.builds[rightChar] ?? 1.0,
+    );
+    v.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
+    v.onJump = () => _puff(v);
+    v.onLand = () => _puff(v, land: true);
+    villain = v;
+    world.add(v);
+    v.resetFor(180, kLaneZ, -1);
+    hero.resetFor(-180, kLaneZ, 1);
+    hero.setWeapon(Weapon.enemyBlade);
+    v.setWeapon(Weapon.enemyBlade);
+    hero.maxHp = hero.hp = 100;
+    v.maxHp = v.hp = 100;
+    hero.opponent = v;
+    v.opponent = hero;
+    deck = CardDeck(const []);
+    hero.puppet = v.puppet = !duel.isHost;
+    combo = 0;
+    comboT = 0;
+    stageT = 0;
+    hud.resetGhosts();
+    lastUnlocked = null;
+    phase = Phase.intro;
+    phaseT = 0;
+    _fightAnnounced = false;
+    smashCd = 0;
+    _pendingCard = null;
+    battlePaused = false;
+    stageMaxCombo = 0;
+    overlays.remove(overlayPause);
+    overlays.add(overlayDarkChat);
+    announcer.show('DARK DUEL', sub: '$leftName  vs  $rightName', life: 1.0, color: const Color(0xFFC77DFF));
+    Sfx.play('stage');
+    Sfx.music('battle');
+    duel.attach(this);
+  }
+
+  /// Who took the last network duel, from this player's seat.
+  bool darkWon = false;
+  (String, String, String, String)? _netSeats;
+
+  /// Host: run it back with the same seats (the guest follows the message).
+  void rematchNetDuel() {
+    final n = net, seats = _netSeats;
+    if (n == null || seats == null) return;
+    if (n.isHost) n.sendRestart();
+    restartNetDuel();
+  }
+
+  /// Both sides: the same duel again over the same line.
+  void restartNetDuel() {
+    final n = net, seats = _netSeats;
+    if (n == null || seats == null) return;
+    startNetDuel(n, myName: seats.$1, myChar: seats.$2, theirName: seats.$3, theirChar: seats.$4);
+  }
+
+  /// The host calls this when the round clock runs out; the guest when the
+  /// host's verdict arrives. [heroWon] is about the left-hand fighter.
+  void _endNetDuel({required bool heroWon}) {
+    final n = net;
+    if (n == null || phase == Phase.menu) return;
+    if (n.isHost) n.sendEnd(leftWon: heroWon);
+    darkWon = n.isHost ? heroWon : !heroWon;
+    phase = Phase.menu;
+    overlays.remove(overlayDarkChat);
+    overlays.add(overlayDarkResult);
+    Sfx.play(darkWon ? 'win' : 'lose');
+    Sfx.music('menu');
+  }
+
+  /// A verdict from the host (guest side).
+  void netVerdict({required bool leftWon}) => _endNetDuel(heroWon: leftWon);
+
+  /// The duel is over or the line dropped: back to the Dark hub.
+  void leaveNetDuel() {
+    final n = net;
+    net = null;
+    n?.detach();
+    villain?.removeFromParent();
+    villain = null;
+    hero.puppet = false;
+    hero.resetFor(-180, kLaneZ, 1);
+    _rebuildDeck();
+    battlePaused = false;
+    overlays.clear();
+    phase = Phase.menu;
+    overlays.add(overlayDark);
+    Sfx.music('menu');
+  }
+
+  /// The Dark section's hub (auth, paywall, roster, lobby).
+  void showDark() {
+    overlays.clear();
+    battlePaused = false;
+    phase = Phase.menu;
+    overlays.add(overlayDark);
+    Sfx.music('menu');
+  }
+
   // ---- Stages -------------------------------------------------------------
 
   StageCfg stageCfg(int n) {
@@ -228,8 +382,11 @@ class ShadowGame extends FlameGame {
     return null;
   }
 
+  /// The armory bought or forged something: the deck fights with it next.
+  void onArmoryChanged() => _rebuildDeck();
+
   void _rebuildDeck() {
-    deck = CardDeck(Swords.unlockedAt(progress.highestCleared));
+    deck = CardDeck(progress.ownedSwords);
     deck.onSpent = (spent, next) {
       Sfx.play('spent');
       announcer.show('${spent.name} SPENT',
@@ -247,10 +404,39 @@ class ShadowGame extends FlameGame {
 
   void startStage(int n) {
     if (!progress.isUnlocked(n)) return;
-    overlays.clear();
+    darkTrial = null;
     stage = n;
+    _beginFight(stageCfg(n), title: 'STAGE $n');
+  }
+
+  /// Which Dark trial is on (index into DarkRoster), or null in the campaign.
+  int? darkTrial;
+  bool get inDarkTrial => darkTrial != null;
+
+  /// Fight one of the Dark roster against the AI. Not gated by campaign
+  /// progress; pays a flat purse and never touches stage clears.
+  void startDarkTrial(StageCfg cfg, int index, {required String heroName, required String heroChar}) {
+    darkTrial = index;
+    _trialCfg = cfg;
+    setHeroChar(heroName, heroChar);
+    _beginFight(cfg, title: 'DARK TRIAL ${index + 1}', color: const Color(0xFFC77DFF));
+  }
+
+  StageCfg? _trialCfg;
+
+  /// Run the last Dark trial again with the same fighters.
+  void retryDarkTrial() {
+    final cfg = _trialCfg, i = darkTrial;
+    if (cfg == null || i == null) return;
+    startDarkTrial(cfg, i, heroName: hero.charName, heroChar: hero.charKey);
+  }
+
+  void _beginFight(StageCfg cfg, {required String title, Color color = const Color(0xFFFFFFFF)}) {
+    overlays.clear();
+    net?.detach();
+    net = null;
+    hero.puppet = false;
     villain?.removeFromParent();
-    final cfg = stageCfg(n);
     final v = VillainFighter(
       name: cfg.name,
       charKey: cfg.charKey,
@@ -274,10 +460,13 @@ class ShadowGame extends FlameGame {
       moveSpeed: cfg.speed,
     );
     v.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
+    v.onJump = () => _puff(v);
+    v.onLand = () => _puff(v, land: true);
     villain = v;
     world.add(v);
-    v.resetFor(180, 78, -1);
-    hero.resetFor(-180, 78, 1);
+    v.resetFor(180, kLaneZ, -1);
+    hero.resetFor(-180, kLaneZ, 1);
+    hero.maxHp = 100;
     hero.hp = hero.maxHp;
     hero.opponent = v;
     v.opponent = hero;
@@ -291,17 +480,18 @@ class ShadowGame extends FlameGame {
     phaseT = 0;
     _fightAnnounced = false;
     practice = null;
-    leftDir = rightDir = null;
-    heldCombo = null;
     smashCd = 0;
     _pendingCard = null;
     battlePaused = false;
     stageMaxCombo = 0;
     overlays.remove(overlayPause);
-    announcer.show('STAGE $n', sub: cfg.name, life: 1.0);
+    announcer.show(title, sub: cfg.name, life: 1.0, color: color);
     Sfx.play('stage');
     Sfx.music('battle');
   }
+
+  /// The name of whoever we are (or were just) fighting.
+  String get opponentName => villain?.charName ?? stageCfg(stage).name;
 
   void nextStage() => startStage(stage + 1);
   void retryStage() => startStage(stage);
@@ -336,10 +526,15 @@ class ShadowGame extends FlameGame {
     battlePaused = false;
     villain?.removeFromParent();
     villain = null;
-    hero.resetFor(-180, 78, 1);
+    hero.resetFor(-180, kLaneZ, 1);
     if (practice != null) {
       practice = null;
       showDojo();
+      return;
+    }
+    if (inDarkTrial) {
+      darkTrial = null;
+      showDark();
       return;
     }
     showMap();
@@ -375,8 +570,8 @@ class ShadowGame extends FlameGame {
     v.onSwing = (k) => Sfx.swing(heavy: k == MoveKind.heavy);
     villain = v;
     world.add(v);
-    v.resetFor(120, 78, -1);
-    hero.resetFor(-120, 78, 1);
+    v.resetFor(120, kLaneZ, -1);
+    hero.resetFor(-120, kLaneZ, 1);
     hero.hp = hero.maxHp;
     hero.opponent = v;
     v.opponent = hero;
@@ -396,8 +591,6 @@ class ShadowGame extends FlameGame {
     _pendingCard = null;
     battlePaused = false;
     stageMaxCombo = 0;
-    leftDir = rightDir = null;
-    heldCombo = null;
     overlays.remove(overlayPause);
     announcer.show('DOJO', sub: 'lesson ${lesson + 1}  ·  ${practice!.lesson.title}', life: 1.0);
     Sfx.play('stage');
@@ -526,8 +719,26 @@ class ShadowGame extends FlameGame {
   void _score() {
     lastHpFrac = (hero.hp / hero.maxHp).clamp(0.0, 1.0);
     lastStars = _starsEarned();
+    final trial = darkTrial;
+    if (trial != null) {
+      // Dark trials pay a flat purse and leave the campaign map alone.
+      lastFirstClear = false;
+      lastNewStars = false;
+      _pay(Progress.darkTrialReward(trial, stars: lastStars));
+      progress.recordCombo(stageMaxCombo).then((best) => lastNewCombo = best);
+      return;
+    }
+    lastFirstClear = !progress.isCleared(stage);
+    _pay(Progress.reward(stage: stage, win: true, firstClear: lastFirstClear, stars: lastStars));
     progress.clearStage(stage, lastStars).then((better) => lastNewStars = better);
     progress.recordCombo(stageMaxCombo).then((best) => lastNewCombo = best);
+  }
+
+  /// Coins into the purse; the result screen animates from [coinsBefore].
+  void _pay(int n) {
+    coinsBefore = progress.coins;
+    lastCoins = n;
+    progress.addCoins(n);
   }
 
   void showArmory() {
@@ -618,6 +829,9 @@ class ShadowGame extends FlameGame {
     }
 
     phaseT += dt;
+    // Snapshots keep flowing through the KO and the round-over clock, so the
+    // guest's mirror sees the finish.
+    if (phase != Phase.menu) net?.tick(dt);
     switch (phase) {
       case Phase.menu:
         hero.ix = 0;
@@ -645,12 +859,20 @@ class ShadowGame extends FlameGame {
           hero.guardZone = GuardZone.none;
         }
         if (practice != null) _updatePractice(dt);
-        if (v != null && v.alive && hero.alive) {
+        final n = net;
+        if (n != null && n.isHost) {
+          final VillainFighter? rv = v;
+          if (rv is RemoteFighter) rv.drive(dt);
+        }
+        if (v != null && v.alive && hero.alive && !hero.puppet) {
+          // Always square up to the enemy, whichever side they landed on.
           if (!hero.attacking) hero.facing = v.wx >= hero.wx ? 1 : -1;
           if (!v.attacking) v.facing = hero.wx >= v.wx ? 1 : -1;
           final dx = v.wx - hero.wx;
-          final dz = (v.zPos - hero.zPos).abs();
-          if (dx.abs() < 44 && dz < 26) {
+          // Bodies on the ground cannot overlap, but a leap clears the other
+          // fighter, so a jump swaps sides.
+          final oneAirborne = hero.h > 40 || v.h > 40;
+          if (dx.abs() < 44 && !oneAirborne) {
             final push = (44 - dx.abs()) / 2;
             final dir = dx >= 0 ? 1 : -1;
             hero.wx = (hero.wx - push * dir).clamp(-kArenaHalf, kArenaHalf);
@@ -667,8 +889,14 @@ class ShadowGame extends FlameGame {
         }
         if (phaseT >= 2.6) {
           lastWin = true;
-          lastUnlocked = swordUnlockedByStage(stage);
+          if (netplay) {
+            // The host hands down the verdict; the guest waits for it.
+            if (net!.isHost) _endNetDuel(heroWon: true);
+            return;
+          }
           _score();
+          // A blade goes up for sale the first time its stage falls.
+          lastUnlocked = lastFirstClear ? swordUnlockedByStage(stage) : null;
           phase = Phase.menu;
           overlays.add(overlayResult);
           Sfx.play('win');
@@ -679,11 +907,17 @@ class ShadowGame extends FlameGame {
         hero.iz = 0;
         if (phaseT >= 2.2) {
           lastWin = false;
+          if (netplay) {
+            if (net!.isHost) _endNetDuel(heroWon: false);
+            return;
+          }
           lastUnlocked = null;
           lastStars = 0;
           lastNewStars = false;
           lastHpFrac = 0;
           lastNewCombo = false;
+          lastFirstClear = false;
+          _pay(Progress.reward(stage: stage, win: false, firstClear: false));
           phase = Phase.menu;
           overlays.add(overlayResult);
           Sfx.play('lose');
@@ -692,31 +926,30 @@ class ShadowGame extends FlameGame {
     }
   }
 
-  double _deadzone(double v) => v.abs() < 0.18 ? 0 : v;
-
-  /// Two held sticks spell a combo (see combos.dart); the left stick alone
-  /// walks. Sectors are read relative to the enemy, so "toward" is always
-  /// the same combo whichever side the hero stands on.
+  /// The sticks drive the hero (see [Fighter.applySticks]); in a network
+  /// duel where we are the guest they are sent to the host instead.
   void _pollSticks() {
-    final face = hero.facing;
     final ls = _leftStick, rs = _rightStick;
-    leftDir = Dir.decode(ls, face, prev: leftDir);
-    rightDir = Dir.decode(rs, face, prev: rightDir);
-    hero.smashArmed = smashCd <= 0;
-    final l = leftDir, r = rightDir;
-    if (l != null && r != null) {
-      heldCombo = Combo.of(l, r);
-      hero.holdCombo(heldCombo);
-      hero.ix = 0;
-      hero.iz = 0;
-    } else {
-      heldCombo = null;
-      hero.holdCombo(null);
-      hero.ix = _deadzone(ls.x);
-      hero.iz = _deadzone(ls.y);
+    final n = net;
+    if (n != null && !n.isHost) {
+      n.sendSticks(ls, rs);
+      return;
     }
-    // Guards only come from held combos; the fighter owns them while in one.
-    if (hero.state != FState.combo) hero.guardZone = GuardZone.none;
+    hero.applySticks(ls, rs, smashArmed: smashCd <= 0);
+  }
+
+  Dir? get leftDir => hero.leftDir;
+  Dir? get rightDir => hero.rightDir;
+  Combo? get heldCombo => hero.heldCombo;
+
+  /// Take-off and landing dust for either fighter.
+  void _puff(Fighter f, {bool land = false}) {
+    world.add(SparkBurst(
+      at: Vector2(f.position.x, kFloorTop + kLaneZ + 2),
+      palette: const [Color(0x99C9C2FF), Color(0x66FFFFFF)],
+      heavy: land,
+    ));
+    if (land) Sfx.play('dash', volume: .35);
   }
 
   Rect _bounds(List<Offset> pts) {
@@ -731,7 +964,13 @@ class ShadowGame extends FlameGame {
   }
 
   void heroAttack(MoveKind k) {
-    if (phase == Phase.fighting && hero.alive) hero.startMove(k);
+    if (phase != Phase.fighting || !hero.alive) return;
+    final n = net;
+    if (n != null && !n.isHost) {
+      n.sendTap(k);
+      return;
+    }
+    hero.startMove(k);
   }
 
   /// Run [f] after [delay] seconds of game time.
@@ -760,6 +999,12 @@ class ShadowGame extends FlameGame {
 
   void castArt(ArtGesture g, {Rect? glyph}) {
     if (phase != Phase.fighting || !hero.alive) return;
+    // Network duels are plain steel: no sword arts on either side.
+    if (netplay) {
+      final kind = g == ArtGesture.v ? GestureKind.glyphV : GestureKind.glyphW;
+      if (glyph != null) trail.flash(kind, glyph, label: 'NO ARTS IN THE DARK', ok: false);
+      return;
+    }
     final art = Arts.art(hero.weapon.id, g);
     final kind = g == ArtGesture.v ? GestureKind.glyphV : GestureKind.glyphW;
     if (hero.stunned || hero.state == FState.hit) {
@@ -992,6 +1237,8 @@ class ShadowGame extends FlameGame {
       (from.position.x + target.position.x) / 2,
       target.position.y - 74,
     );
+    // The host relays every blow so the guest's mirror sparks too.
+    net?.relayStrike(from, target, m, dmg, blocked, killed, crit, parried);
     if (practice != null) _practiceStrike(from, m, blocked, parried);
     final sp = from.weapon.special;
     final erupt = !blocked && m.heavy && sp == Special.dragonfire;

@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'dark/dark_screens.dart';
 import 'game/shadow_game.dart';
 import 'ui/dojo.dart';
 import 'ui/screens.dart';
@@ -43,6 +44,9 @@ class _ShadowDuelAppState extends State<ShadowDuelApp> {
             ShadowGame.overlayResult: (context, g) => ResultScreen(game: g),
             ShadowGame.overlayPause: (context, g) => PauseScreen(game: g),
             ShadowGame.overlayDojo: (context, g) => DojoScreen(game: g),
+            ShadowGame.overlayDark: (context, g) => DarkScreen(game: g),
+            ShadowGame.overlayDarkChat: (context, g) => DarkChatBar(game: g),
+            ShadowGame.overlayDarkResult: (context, g) => DarkResultScreen(game: g),
           },
           initialActiveOverlays: const [ShadowGame.overlayTitle],
         ),

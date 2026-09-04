@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "891020100166",
+    "project_id": "shadow-duel-dark-2026",
+    "storage_bucket": "shadow-duel-dark-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:891020100166:android:04e268057b97e20b508047",
+        "android_client_info": {
+          "package_name": "com.example.shadow_duel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEmKdVP79XffJXSc5M2wetplKGFj2S9wE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

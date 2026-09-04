@@ -1,0 +1,26 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "shadow-duel-dark-2026",
+          "appId": "1:891020100166:android:04e268057b97e20b508047",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "shadow-duel-dark-2026",
+          "configurations": {
+            "android": "1:891020100166:android:04e268057b97e20b508047",
+            "web": "1:891020100166:web:077ad81a928f820a508047"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

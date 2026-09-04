@@ -49,11 +49,44 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
   double maxHp;
   double hp;
 
-  double wx = 0, zPos = 60;
+  /// Both fighters share one lane: [wx] is the only free axis, [zPos] is
+  /// pinned to [kLaneZ] and kept only for depth-scaling and old call sites.
+  double wx = 0, zPos = kLaneZ;
   double h = 0, vh = 0, kvx = 0;
   double ix = 0, iz = 0;
   int facing = 1;
   double speedMult = 1.0;
+
+  /// Horizontal velocity carried through a jump (no steering mid-air).
+  double _airVx = 0;
+  bool _jumping = false;
+
+  /// Seconds left of the landing squash.
+  double landT = 0;
+
+  static const jumpSpeed = 760.0, gravity = 1600.0;
+
+  bool get airborne => h > 0 || vh != 0;
+  bool get jumping => _jumping;
+
+  /// Fired on take-off and on landing (dust, sound).
+  void Function()? onJump, onLand;
+
+  /// What each stick holds (relative to the enemy) and the combo the pair
+  /// spells; filled by [applySticks] for the HUD.
+  Dir? leftDir, rightDir;
+  Combo? heldCombo;
+  bool _jumpHeld = false;
+
+  /// A puppet is drawn from a network snapshot: no physics, no state
+  /// machine, just the frame the authority says it is on (see netplay).
+  bool puppet = false;
+  String puppetAnim = 'idle';
+  int puppetFrame = 0;
+  double puppetLean = 0, puppetSquash = 1;
+
+  /// The pack strip and frame drawn right now, for snapshots.
+  (String, int) animFrame() => _sampleNamed();
 
   FState state = FState.idle;
   double stateT = 0;
@@ -102,7 +135,7 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
   final List<(Offset, double)> _trail = [];
   static final _rng = math.Random();
 
-  static const _moveSpeedX = 200.0, _moveSpeedZ = 130.0;
+  static const _moveSpeedX = 200.0;
 
   GuardZone guardZone = GuardZone.none;
 
@@ -139,13 +172,16 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
 
   void resetFor(double x, double zp, int face) {
     wx = x;
-    zPos = zp;
+    zPos = kLaneZ;
     facing = face;
     h = 0;
     vh = 0;
     kvx = 0;
     ix = 0;
     iz = 0;
+    _airVx = 0;
+    _jumping = false;
+    landT = 0;
     state = FState.idle;
     stateT = 0;
     currentMove = null;
@@ -285,6 +321,55 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     hp = math.min(maxHp, hp + amount);
   }
 
+  /// Two held sticks spell a combo (see combos.dart); the left stick alone
+  /// walks, and flicked up, jumps. Sectors are read relative to the enemy,
+  /// so "toward" is always the same combo whichever side we stand on.
+  void applySticks(Vector2 ls, Vector2 rs, {required bool smashArmed}) {
+    if (!alive) {
+      ix = 0;
+      iz = 0;
+      heldCombo = null;
+      holdCombo(null);
+      guardZone = GuardZone.none;
+      return;
+    }
+    leftDir = Dir.decode(ls, facing, prev: leftDir);
+    rightDir = Dir.decode(rs, facing, prev: rightDir);
+    this.smashArmed = smashArmed;
+    final l = leftDir, r = rightDir;
+    if (l != null && r != null) {
+      heldCombo = Combo.of(l, r);
+      holdCombo(heldCombo);
+      ix = 0;
+      iz = 0;
+    } else {
+      heldCombo = null;
+      holdCombo(null);
+      ix = ls.x.abs() < 0.18 ? 0 : ls.x;
+      iz = 0;
+      // Left stick alone, flicked up: jump (once per flick, not while held).
+      final up = ls.y < -.55 && ls.length > .6;
+      if (up && !_jumpHeld) jump();
+      _jumpHeld = up;
+    }
+    // Guards only come from held combos; the fighter owns them while in one.
+    if (state != FState.combo) guardZone = GuardZone.none;
+  }
+
+  /// Leap straight up, or over the opponent when running at them. The arc
+  /// clears a standing fighter, so face-to-face duels can swap sides.
+  bool jump() {
+    if (!alive || stunned || airborne || (state != FState.idle && state != FState.walk)) return false;
+    _jumping = true;
+    vh = jumpSpeed;
+    h = 0.01;
+    _airVx = ix.abs() > 0.18 ? ix.sign * _moveSpeedX * 1.15 * speedMult : 0;
+    state = FState.idle;
+    stateT = 0;
+    onJump?.call();
+    return true;
+  }
+
   void startMove(MoveKind k) {
     if (!alive || stunned || state == FState.dead || state == FState.victory || state == FState.hit ||
         state == FState.combo) {
@@ -305,6 +390,17 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
   @override
   void update(double dt) {
     super.update(dt);
+    if (puppet) {
+      // Mirrored from the authority: only the cosmetic timers tick here.
+      flashT = math.max(0, flashT - dt);
+      blockFlashT = math.max(0, blockFlashT - dt);
+      landT = math.max(0, landT - dt);
+      _trail.removeWhere((e) => game.t - e.$2 > 0.16);
+      zPos = kLaneZ;
+      position.setValues(wx, kFloorTop + zPos - h);
+      priority = 100 + zPos.round() + (h > 0 ? 40 : 0);
+      return;
+    }
     final slowed = slowT > 0;
     slowT = math.max(0, slowT - dt);
     for (final f in [
@@ -354,24 +450,32 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
       }
     }
 
+    landT = math.max(0, landT - dt);
     if (state == FState.combo) {
       // The clip owns the height; a knock-up ends the combo first.
       h = comboPlayer.hop;
       vh = 0;
+      _jumping = false;
     } else if (h > 0 || vh != 0) {
       h += vh * dt;
-      vh -= 1600 * dt;
+      vh -= gravity * dt;
       if (h <= 0) {
         h = 0;
         vh = 0;
+        if (_jumping) {
+          _jumping = false;
+          landT = .18;
+          onLand?.call();
+        }
+        _airVx = 0;
       }
     }
     kvx *= math.max(0, 1 - 7 * dt);
     if (kvx.abs() < 2) kvx = 0;
 
     var vx = kvx;
-    var vz = 0.0;
-    final moving = ix.abs() > 0.18 || iz.abs() > 0.18;
+    // Only the ground axis moves: the fight is a 2D lane.
+    final moving = ix.abs() > 0.18;
     final moveScale = slowed ? 0.45 : 1.0;
 
     if (state == FState.attack) {
@@ -413,9 +517,15 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
         stunMult = 1;
       }
     } else if (state == FState.idle || state == FState.walk) {
-      if (moving) {
+      if (_jumping) {
+        // Committed arc: the take-off speed carries through the air.
+        vx += _airVx * moveScale;
+        if (state != FState.idle) {
+          state = FState.idle;
+          stateT = 0;
+        }
+      } else if (moving) {
         vx += ix * _moveSpeedX * speedMult * moveScale;
-        vz = iz * _moveSpeedZ * speedMult * moveScale;
         if (state != FState.walk) {
           state = FState.walk;
           stateT = 0;
@@ -427,9 +537,10 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     }
 
     wx = (wx + vx * dt).clamp(-kArenaHalf, kArenaHalf);
-    zPos = (zPos + vz * dt).clamp(8.0, kZMax);
+    zPos = kLaneZ;
     position.setValues(wx, kFloorTop + zPos - h);
-    priority = 100 + zPos.round();
+    // The one in the air is drawn over the one on the ground.
+    priority = 100 + zPos.round() + (airborne ? 40 : 0);
   }
 
   void _tryHit(MoveSpec m) {
@@ -526,32 +637,52 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
   }
 
   (BakedAnim, int) _sampleAnim() {
+    final (name, frame) = _sampleNamed();
+    return (lib.animOr(charKey, name), frame);
+  }
+
+  /// The strip name and frame index for the current pose.
+  (String, int) _sampleNamed() {
+    if (puppet) return (puppetAnim, puppetFrame);
+    if (_jumping && (state == FState.idle || state == FState.walk)) {
+      // Rising frames on the way up, falling frames past the apex.
+      final name = vh > 0 ? 'jump' : 'fall';
+      final ba = lib.animOr(charKey, name);
+      final u = vh > 0 ? 1 - vh / jumpSpeed : (-vh / jumpSpeed).clamp(0.0, 1.0);
+      return (name, ba.frameAt(ba.loop ? u : u * .999));
+    }
     switch (state) {
       case FState.idle:
         final ba = lib.anim(charKey, 'idle');
-        return (ba, ba.frameAt(stateT / ba.duration));
+        return ('idle', ba.frameAt(stateT / ba.duration));
       case FState.walk:
         final ba = lib.anim(charKey, 'walk');
         final reverse = ix * facing < -0.05;
-        return (ba, ba.frameAt(stateT / ba.duration, reverse: reverse));
+        return ('walk', ba.frameAt(stateT / ba.duration, reverse: reverse));
       case FState.attack:
         final m = currentMove!;
         final ba = lib.anim(charKey, m.animName);
-        return (ba, ba.frameAt(stateT / m.duration));
+        return (m.animName, ba.frameAt(stateT / m.duration));
       case FState.combo:
         final cs = comboPlayer.sample();
-        return (cs.anim, cs.frame);
+        return (cs.name, cs.frame);
       case FState.hit:
         final ba = lib.anim(charKey, 'hit');
-        return (ba, ba.frameAt(stateT / (ba.duration * stunMult)));
+        return ('hit', ba.frameAt(stateT / (ba.duration * stunMult)));
       case FState.dead:
         final ba = lib.anim(charKey, 'death');
-        return (ba, ba.frameAt(stateT / ba.duration));
+        return ('death', ba.frameAt(stateT / ba.duration));
       case FState.victory:
         final ba = lib.anim(charKey, 'victory');
-        return (ba, ba.frameAt(stateT / ba.duration));
+        return ('victory', ba.frameAt(stateT / ba.duration));
     }
   }
+
+  /// Body shear and crouch for the current pose (combo motion, or a puppet's
+  /// mirrored values).
+  (double, double) get poseLeanSquash => puppet
+      ? (puppetLean, puppetSquash)
+      : (state == FState.combo ? (comboPlayer.lean, comboPlayer.squash) : (0.0, 1.0));
 
   Color? _tint() {
     if (flashT > 0) {
@@ -587,9 +718,11 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
     _renderTrail(canvas);
 
     final (ba, fi) = _sampleAnim();
+    // The packs are magnified ~3x; bilinear sampling melts the stair-steps
+    // and a dark silhouette pass gives the body a clean inked edge.
     final paint = Paint()
       ..color = const Color(0xFFFFFFFF).withValues(alpha: op)
-      ..filterQuality = ba.pixel ? FilterQuality.none : FilterQuality.medium;
+      ..filterQuality = FilterQuality.low;
     final tint = _tint();
     if (tint != null) {
       paint.colorFilter = ColorFilter.mode(tint, BlendMode.srcATop);
@@ -597,16 +730,39 @@ class Fighter extends PositionComponent with HasGameReference<ShadowGame> {
 
     canvas.save();
     canvas.scale(facing * (ba.flip ? -1 : 1) * s, s);
-    if (state == FState.combo) {
+    final (lean, sq) = poseLeanSquash;
+    if (state == FState.combo || (puppet && (lean != 0 || sq != 1))) {
       // Crouch (squash at the feet) and lean (shear toward the enemy).
-      final sq = comboPlayer.squash;
       canvas.scale(1 + (1 - sq) * .5, sq);
-      canvas.skew(-comboPlayer.lean, 0);
+      canvas.skew(-lean, 0);
+    } else if (landT > 0) {
+      // Touch-down squash that springs back.
+      final u = landT / .18;
+      final sq = 1 - .16 * math.sin(u * math.pi);
+      canvas.scale(1 + (1 - sq) * 1.2, sq);
+    } else if (_jumping) {
+      // Stretch on the way up, tuck on the way down.
+      final st = 1 + (vh / jumpSpeed).clamp(-1.0, 1.0) * .08;
+      canvas.scale(1 / st, st);
+    }
+    final framePos = Vector2(-ba.ax / ba.scale, -ba.ay / ba.scale);
+    final frameSize = Vector2(ba.fw / ba.scale, ba.fh / ba.scale);
+    final ink = Paint()
+      ..filterQuality = FilterQuality.low
+      ..colorFilter = ColorFilter.mode(const Color(0xFF0A0912).withValues(alpha: .85 * op), BlendMode.srcIn);
+    const o = 1.6;
+    for (final d in const [Offset(o, 0), Offset(-o, 0), Offset(0, o), Offset(0, -o)]) {
+      ba.frames[fi].render(
+        canvas,
+        position: framePos + Vector2(d.dx, d.dy),
+        size: frameSize,
+        overridePaint: ink,
+      );
     }
     ba.frames[fi].render(
       canvas,
-      position: Vector2(-ba.ax / ba.scale, -ba.ay / ba.scale),
-      size: Vector2(ba.fw / ba.scale, ba.fh / ba.scale),
+      position: framePos,
+      size: frameSize,
       overridePaint: paint,
     );
 

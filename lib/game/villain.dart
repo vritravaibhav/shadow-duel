@@ -34,6 +34,9 @@ class VillainFighter extends Fighter {
   /// A sparring dummy: no AI, the game scripts its guard and swings.
   bool dummy = false;
 
+  /// Another human over the network: no AI, the sticks they send drive it.
+  bool remote = false;
+
   /// Every swing is telegraphed: the villain plants its feet for
   /// [windUpTime] before it starts, long enough to read the zone and block.
   MoveKind? _windUp;
@@ -58,6 +61,10 @@ class VillainFighter extends Fighter {
 
   @override
   void update(double dt) {
+    if (remote) {
+      super.update(dt);
+      return;
+    }
     final hero = opponent;
     if (_windUp != null) {
       _windUpT -= dt;
@@ -92,12 +99,28 @@ class VillainFighter extends Fighter {
 
     final dx = hero.wx - wx;
     final adx = dx.abs();
-    final dz = hero.zPos - zPos;
     final reach = moves[MoveKind.punch]!.range + 6;
+    iz = 0;
+
+    if (airborne) {
+      // Committed to the leap; steer nothing until the feet are down.
+      ix = 0;
+      return;
+    }
 
     if (_thinkT <= 0) {
       _thinkT = 0.22 + _rng.nextDouble() * 0.3;
       final roll = _rng.nextDouble();
+      // Cornered against the wall, or the hero is winding up close by:
+      // vault over them and take the other side.
+      final cornered = (wx.abs() > kArenaHalf - 70) && (hero.wx - wx).sign == -wx.sign;
+      if (adx < 120 && (cornered ? roll < 0.6 : (hero.attacking ? roll < 0.16 : roll < 0.05))) {
+        ix = dx.sign;
+        if (jump()) {
+          _cool = math.max(_cool, .5);
+          return;
+        }
+      }
       if (hero.attacking && adx < 130 && roll < 0.35) {
         _mode = 2;
         _modeT = .45;
@@ -133,13 +156,10 @@ class VillainFighter extends Fighter {
     switch (_mode) {
       case 0:
         ix = adx > reach - 10 ? dx.sign : 0;
-        iz = dz.abs() > 12 ? dz.sign : 0;
       case 1:
         ix = -dx.sign * .7;
-        iz = dz.abs() > 40 ? dz.sign : 0;
       default:
         ix = 0;
-        iz = 0;
         guardZone = GuardZone.high;
         _guardT = math.max(_guardT, .3);
     }
@@ -147,7 +167,7 @@ class VillainFighter extends Fighter {
     if ((state == FState.idle || state == FState.walk) &&
         _cool <= 0 &&
         adx < reach + 26 &&
-        dz.abs() < 24) {
+        hero.h < 60) {
       windUp(_pickMove());
       _cool = (0.7 + _rng.nextDouble() * 0.9) / aggression;
       ix = 0;

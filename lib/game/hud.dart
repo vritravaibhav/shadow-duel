@@ -153,14 +153,18 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
     }
 
     final practice = game.practice;
-    drawText(c, practice == null ? 'STAGE ${game.stage}' : 'DOJO', const Offset(480, 30),
-        size: 13, letterSpacing: 5, color: const Color(0x66FFFFFF));
+    drawText(c, game.netplay ? 'DARK DUEL' : (practice == null ? 'STAGE ${game.stage}' : 'DOJO'),
+        const Offset(480, 30),
+        size: 13, letterSpacing: 5, color: game.netplay ? const Color(0x99C77DFF) : const Color(0x66FFFFFF));
     if (practice != null) _lessonBanner(c, practice);
 
-    // Sword-art badges: draw V / W on the right half to cast.
-    final (artV, artW) = Arts.of(game.hero.weapon.id);
-    _artBadge(c, const Offset(836, 100), artV, game.deck.artCooldown(ArtGesture.v));
-    _artBadge(c, const Offset(908, 100), artW, game.deck.artCooldown(ArtGesture.w));
+    // Sword-art badges: draw V / W on the right half to cast (not in the
+    // Dark, where duels are plain steel).
+    if (!game.netplay) {
+      final (artV, artW) = Arts.of(game.hero.weapon.id);
+      _artBadge(c, const Offset(836, 100), artV, game.deck.artCooldown(ArtGesture.v));
+      _artBadge(c, const Offset(908, 100), artW, game.deck.artCooldown(ArtGesture.w));
+    }
 
     // Combo counter.
     if (game.combo >= 2) {
@@ -208,7 +212,7 @@ class Hud extends PositionComponent with HasGameReference<ShadowGame> {
     _comboLabel(c);
 
     // Controls hint for the first moments of stage 1.
-    if (game.stage == 1 && practice == null && game.phase == Phase.fighting && game.stageT < 14) {
+    if (game.stage == 1 && practice == null && !game.netplay && game.phase == Phase.fighting && game.stageT < 14) {
       const hint = [
         'BOTH STICKS at the enemy = ATTACK   ●   LEFT height picks head / body / legs   ●   RIGHT picks ▲ smash  ► cut  ▼ kick',
         'LEFT away + RIGHT at the enemy = BLOCK at that height   ●   both away = STEP BACK   ●   draw V / W to cast',
@@ -318,7 +322,7 @@ class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCa
 
   @override
   bool containsLocalPoint(Vector2 point) {
-    if (game.phase == Phase.menu) return false;
+    if (game.phase == Phase.menu || game.netplay) return false;
     for (var i = 0; i < _count; i++) {
       if (_cardRect(i).inflate(4).contains(point.toOffset())) return true;
     }
@@ -347,7 +351,7 @@ class CardBar extends PositionComponent with HasGameReference<ShadowGame>, TapCa
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    if (game.phase == Phase.menu) return;
+    if (game.phase == Phase.menu || game.netplay) return;
     final deck = game.deck;
     final ui = game.sprites.ui;
     for (var slot = 0; slot < _count; slot++) {

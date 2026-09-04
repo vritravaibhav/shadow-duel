@@ -78,6 +78,22 @@ class Weapon {
   final Color trail;
   final Special? special;
 
+  /// The same blade after [level] forge upgrades: sharper, heavier, quicker
+  /// and a touch longer every mark.
+  Weapon forged(int level) {
+    if (level <= 0) return this;
+    return Weapon(
+      id: id,
+      name: name,
+      strength: strength * (1 + .07 * level),
+      power: power * (1 + .05 * level),
+      speed: speed * (1 + .025 * level),
+      range: range + 2.0 * level,
+      trail: trail,
+      special: special,
+    );
+  }
+
   static const fists = Weapon(
     id: 'fists',
     name: 'FISTS',
@@ -108,6 +124,8 @@ class Sword {
     required this.recharge,
     required this.unlockLevel,
     required this.icon,
+    required this.price,
+    this.level = 0,
   });
 
   final Weapon weapon;
@@ -118,61 +136,89 @@ class Sword {
   /// Seconds the spent blade rests before it can be drawn again.
   final double recharge;
 
-  /// Stage that must be cleared to own this sword (0 = starter).
+  /// Stage that must be cleared before the blade is put up for sale
+  /// (0 = on the rack from the start).
   final int unlockLevel;
   final String icon;
 
+  /// Coins to buy the blade. 0 = the starter, yours for free.
+  final int price;
+
+  /// Forge marks applied (0 = as sold).
+  final int level;
+
+  static const maxLevel = 5;
+
   String get id => weapon.id;
   String get name => weapon.name;
+  bool get isStarter => price == 0;
+  bool get maxed => level >= maxLevel;
+
+  /// Coins for the next mark; steeper on the rarer blades.
+  int get upgradeCost => maxed ? 0 : ((price == 0 ? 60 : price) * .45 * (level + 1)).round();
+
+  /// This blade with [level] marks forged in: better numbers, longer use.
+  Sword at(int level) {
+    final l = level.clamp(0, maxLevel);
+    return Sword(
+      weapon: weapon.forged(l),
+      active: active + 1.0 * l,
+      recharge: recharge * (1 - .03 * l),
+      unlockLevel: unlockLevel,
+      icon: icon,
+      price: price,
+      level: l,
+    );
+  }
 }
 
 class Swords {
   static const all = [
     Sword(
       weapon: Weapon(id: 'wakizashi', name: 'WAKIZASHI', strength: 0.9, power: 1.0, speed: 1.25, range: 22, trail: Color(0xFFCFFFE0), special: Special.quickDraw),
-      active: 14, recharge: 30, unlockLevel: 0, icon: 'wakizashi',
+      active: 14, recharge: 30, unlockLevel: 0, icon: 'wakizashi', price: 0,
     ),
     Sword(
       weapon: Weapon(id: 'katana', name: 'KATANA', strength: 1.15, power: 1.2, speed: 1.0, range: 34, trail: Color(0xFF7DEBFF), special: Special.bleed),
-      active: 12, recharge: 36, unlockLevel: 0, icon: 'katana',
+      active: 12, recharge: 36, unlockLevel: 0, icon: 'katana', price: 90,
     ),
     Sword(
       weapon: Weapon(id: 'nodachi', name: 'NODACHI', strength: 1.5, power: 1.7, speed: 0.8, range: 46, trail: Color(0xFFFFD08A), special: Special.cleave),
-      active: 9, recharge: 45, unlockLevel: 2, icon: 'nodachi',
+      active: 9, recharge: 45, unlockLevel: 2, icon: 'nodachi', price: 160,
     ),
     Sword(
       weapon: Weapon(id: 'flame', name: 'FLAME BLADE', strength: 1.3, power: 1.5, speed: 0.95, range: 36, trail: Color(0xFFFF8A3D), special: Special.ignite),
-      active: 10, recharge: 42, unlockLevel: 4, icon: 'flame',
+      active: 10, recharge: 42, unlockLevel: 4, icon: 'flame', price: 260,
     ),
     Sword(
       weapon: Weapon(id: 'frost', name: 'FROST EDGE', strength: 1.2, power: 1.4, speed: 1.0, range: 36, trail: Color(0xFF9FDBFF), special: Special.freeze),
-      active: 10, recharge: 42, unlockLevel: 6, icon: 'frost',
+      active: 10, recharge: 42, unlockLevel: 6, icon: 'frost', price: 340,
     ),
     Sword(
       weapon: Weapon(id: 'shadow', name: 'SHADOW BLADE', strength: 1.25, power: 1.3, speed: 1.1, range: 34, trail: Color(0xFFC77DFF), special: Special.lifesteal),
-      active: 9, recharge: 40, unlockLevel: 8, icon: 'shadow',
+      active: 9, recharge: 40, unlockLevel: 8, icon: 'shadow', price: 440,
     ),
     Sword(
       weapon: Weapon(id: 'thunder', name: 'THUNDER FANG', strength: 1.4, power: 1.5, speed: 1.05, range: 38, trail: Color(0xFFFFF176), special: Special.shock),
-      active: 9, recharge: 45, unlockLevel: 10, icon: 'thunder',
+      active: 9, recharge: 45, unlockLevel: 10, icon: 'thunder', price: 560,
     ),
     Sword(
       weapon: Weapon(id: 'venom', name: 'VENOM KRIS', strength: 1.1, power: 1.2, speed: 1.2, range: 26, trail: Color(0xFF9CFF6B), special: Special.poison),
-      active: 12, recharge: 36, unlockLevel: 12, icon: 'venom',
+      active: 12, recharge: 36, unlockLevel: 12, icon: 'venom', price: 640,
     ),
     Sword(
       weapon: Weapon(id: 'excalibur', name: 'EXCALIBUR', strength: 1.6, power: 1.8, speed: 0.95, range: 40, trail: Color(0xFFFFF4C2), special: Special.radiance),
-      active: 8, recharge: 55, unlockLevel: 14, icon: 'excalibur',
+      active: 8, recharge: 55, unlockLevel: 14, icon: 'excalibur', price: 900,
     ),
     Sword(
       weapon: Weapon(id: 'dragon', name: 'DRAGON CLEAVER', strength: 1.8, power: 2.2, speed: 0.75, range: 48, trail: Color(0xFFFF5C3D), special: Special.dragonfire),
-      active: 7, recharge: 60, unlockLevel: 16, icon: 'dragon',
+      active: 7, recharge: 60, unlockLevel: 16, icon: 'dragon', price: 1200,
     ),
   ];
 
   static Sword byId(String id) => all.firstWhere((s) => s.id == id);
 
-  /// Swords owned once [highestCleared] stages are beaten.
+  /// Swords on sale once [highestCleared] stages are beaten.
   static List<Sword> unlockedAt(int highestCleared) =>
       all.where((s) => s.unlockLevel <= highestCleared).toList();
 }

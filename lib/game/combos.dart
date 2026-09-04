@@ -554,10 +554,13 @@ class ComboClip {
 
 /// What the renderer needs for one frame of a combo.
 class ComboSample {
-  const ComboSample(this.anim, this.frame, this.hop, this.lean, this.squash);
+  const ComboSample(this.anim, this.frame, this.hop, this.lean, this.squash, {this.name = 'idle'});
   final BakedAnim anim;
   final int frame;
   final double hop, lean, squash;
+
+  /// The pack strip [anim] was read from.
+  final String name;
 }
 
 /// Something the player did this tick that the fighter must react to.
@@ -723,7 +726,7 @@ class ComboPlayer {
       final v = p.reverse ? p.to + (p.from - p.to) * u : p.from + (p.to - p.from) * u;
       frame = ba.frameAt(v);
     }
-    return ComboSample(ba, frame, hop, lean, squash);
+    return ComboSample(ba, frame, hop, lean, squash, name: p.anim);
   }
 
   /// Whether the clock sits inside the attack window of the loop stage.

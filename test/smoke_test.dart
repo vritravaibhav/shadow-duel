@@ -7,7 +7,9 @@ void main() {
   testWidgets('game boots to the menu, starts stage 1 and fights', (tester) async {
     final game = await bootGame(tester);
     expect(game.phase, Phase.menu);
-    expect(game.deck.cards.length, 2); // wakizashi + katana starters
+    expect(game.deck.cards.length, 1); // only the free starter until a blade is bought
+    await buyKatana(game);
+    expect(game.deck.cards.length, 2);
 
     game.startStage(1);
     expect(game.phase, Phase.intro);
